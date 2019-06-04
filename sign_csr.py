@@ -205,14 +205,14 @@ openssl dgst -sha256 -sign user.key -out {3} {4}
     except HTTPError as e:
         err = e.read()
         # skip already registered accounts
-        if "Registration key is already in use" in err:
+        if b"Registration key is already in use" in err:
             sys.stderr.write("Already registered. Skipping...\n")
         else:
             sys.stderr.write("Error: reg_data:\n")
             sys.stderr.write("POST {0}\n".format(reg_url))
             sys.stderr.write(reg_data)
             sys.stderr.write("\n")
-            sys.stderr.write(err)
+            sys.stderr.write(err.decode())
             sys.stderr.write("\n")
             raise
 
@@ -350,7 +350,7 @@ sudo python -c "import BaseHTTPServer; \\
             sys.stderr.write("POST {0}\n".format(test_url))
             sys.stderr.write(test_data)
             sys.stderr.write("\n")
-            sys.stderr.write(e.read())
+            sys.stderr.write(e.read().decode())
             sys.stderr.write("\n")
             raise
 
