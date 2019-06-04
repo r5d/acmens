@@ -35,7 +35,7 @@ def sign_csr(pubkey, csr, email=None, file_based=False):
     # Step 1: Get account public key
     sys.stderr.write("Reading pubkey file...\n")
     proc = subprocess.Popen(["openssl", "rsa", "-pubin", "-in", pubkey, "-noout", "-text"],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = proc.communicate()
     if proc.returncode != 0:
         raise IOError("Error loading {0}".format(pubkey))
@@ -64,7 +64,7 @@ def sign_csr(pubkey, csr, email=None, file_based=False):
     # Step 2: Get the domain names to be certified
     sys.stderr.write("Reading csr file...\n")
     proc = subprocess.Popen(["openssl", "req", "-in", csr, "-noout", "-text"],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = proc.communicate()
     if proc.returncode != 0:
         raise IOError("Error loading {0}".format(csr))
