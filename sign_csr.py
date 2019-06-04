@@ -84,7 +84,7 @@ def sign_csr(pubkey, csr, email=None, file_based=False):
         default_email = "webmaster@{0}".format(min(domains, key=len))
         stdout = sys.stdout
         sys.stdout = sys.stderr
-        input_email = raw_input("STEP 1: What is your contact email? ({0}) ".format(default_email))
+        input_email = input("STEP 1: What is your contact email? ({0}) ".format(default_email))
         email = input_email if input_email else default_email
         sys.stdout = stdout
 
@@ -177,7 +177,7 @@ openssl dgst -sha256 -sign user.key -out {3} {4}
 
     stdout = sys.stdout
     sys.stdout = sys.stderr
-    raw_input("Press Enter when you've run the above commands in a new terminal window...")
+    input("Press Enter when you've run the above commands in a new terminal window...")
     sys.stdout = stdout
 
     # Step 6: Load the signatures
@@ -284,7 +284,7 @@ STEP 3: You need to sign some more files (replace 'user.key' with your user priv
 
     stdout = sys.stdout
     sys.stdout = sys.stderr
-    raw_input("Press Enter when you've run the above commands in a new terminal window...")
+    input("Press Enter when you've run the above commands in a new terminal window...")
     sys.stdout = stdout
 
     # Step 10: Load the response signatures
@@ -311,7 +311,7 @@ Notes:
 
             stdout = sys.stdout
             sys.stdout = sys.stderr
-            raw_input("Press Enter when you've got the file hosted on your server...")
+            input("Press Enter when you've got the file hosted on your server...")
             sys.stdout = stdout
         else:
             sys.stderr.write("""\
@@ -327,7 +327,7 @@ sudo python -c "import BaseHTTPServer; \\
 
             stdout = sys.stdout
             sys.stdout = sys.stderr
-            raw_input("Press Enter when you've got the python command running on your server...")
+            input("Press Enter when you've got the python command running on your server...")
             sys.stdout = stdout
 
         # Step 12: Let the CA know you're ready for the challenge
