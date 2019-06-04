@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-import argparse, subprocess, json, os, urllib2, sys, base64, binascii, time, \
-    hashlib, tempfile, re, copy, textwrap
-try:
-    from urllib.request import urlopen # Python 3
-except ImportError:
-    from urllib2 import urlopen # Python 2
+#!/usr/bin/env python3
+import argparse, subprocess, json, os, urllib.request, sys, base64, binascii, \
+    time, hashlib, tempfile, re, copy, textwrap
 
+from urllib.request import urlopen
+from urllib.error import HTTPError
 
 def sign_csr(pubkey, csr, email=None, file_based=False):
     """Use the ACME protocol to get an ssl certificate signed by a
@@ -27,7 +25,7 @@ def sign_csr(pubkey, csr, email=None, file_based=False):
     #CA = "https://acme-staging.api.letsencrypt.org"
     CA = "https://acme-v01.api.letsencrypt.org"
     DIRECTORY = json.loads(urlopen(CA + "/directory").read().decode('utf8'))
-    nonce_req = urllib2.Request("{0}/directory".format(CA))
+    nonce_req = urllib.request.Request("{0}/directory".format(CA))
     nonce_req.get_method = lambda : 'HEAD'
 
     def _b64(b):
@@ -93,7 +91,7 @@ def sign_csr(pubkey, csr, email=None, file_based=False):
     # Step 4: Generate the payloads that need to be signed
     # registration
     sys.stderr.write("Building request payloads...\n")
-    reg_nonce = urllib2.urlopen(nonce_req).headers['Replay-Nonce']
+    reg_nonce = urllib.request.urlopen(nonce_req).headers['Replay-Nonce']
     reg_raw = json.dumps({
         "resource": "new-reg",
         "contact": ["mailto:{0}".format(email)],
@@ -114,7 +112,7 @@ def sign_csr(pubkey, csr, email=None, file_based=False):
     ids = []
     for domain in domains:
         sys.stderr.write("Building request for {0}...\n".format(domain))
-        id_nonce = urllib2.urlopen(nonce_req).headers['Replay-Nonce']
+        id_nonce = urllib.request.urlopen(nonce_req).headers['Replay-Nonce']
         id_raw = json.dumps({
             "resource": "new-authz",
             "identifier": {
@@ -148,7 +146,7 @@ def sign_csr(pubkey, csr, email=None, file_based=False):
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     csr_der, err = proc.communicate()
     csr_der64 = _b64(csr_der)
-    csr_nonce = urllib2.urlopen(nonce_req).headers['Replay-Nonce']
+    csr_nonce = urllib.request.urlopen(nonce_req).headers['Replay-Nonce']
     csr_raw = json.dumps({
         "resource": "new-cert",
         "csr": csr_der64,
@@ -199,9 +197,9 @@ openssl dgst -sha256 -sign user.key -out {3} {4}
     }, sort_keys=True, indent=4)
     reg_url = "{0}/acme/new-reg".format(CA)
     try:
-        resp = urllib2.urlopen(reg_url, reg_data)
+        resp = urllib.request.urlopen(reg_url, reg_data.encode())
         result = json.loads(resp.read())
-    except urllib2.HTTPError as e:
+    except HTTPError as e:
         err = e.read()
         # skip already registered accounts
         if "Registration key is already in use" in err:
@@ -228,9 +226,9 @@ openssl dgst -sha256 -sign user.key -out {3} {4}
         }, sort_keys=True, indent=4)
         id_url = "{0}/acme/new-authz".format(CA)
         try:
-            resp = urllib2.urlopen(id_url, id_data)
+            resp = urllib.request.urlopen(id_url, id_data.encode())
             result = json.loads(resp.read())
-        except urllib2.HTTPError as e:
+        except HTTPError as e:
             sys.stderr.write("Error: id_data:\n")
             sys.stderr.write("POST {0}\n".format(id_url))
             sys.stderr.write(id_data)
@@ -243,7 +241,7 @@ openssl dgst -sha256 -sign user.key -out {3} {4}
 
         # challenge request
         sys.stderr.write("Building challenge responses for {0}...\n".format(i['domain']))
-        test_nonce = urllib2.urlopen(nonce_req).headers['Replay-Nonce']
+        test_nonce = urllib.request.urlopen(nonce_req).headers['Replay-Nonce']
         test_raw = json.dumps({
             "resource": "challenge",
             "keyAuthorization": keyauthorization,
@@ -342,9 +340,9 @@ sudo python -c "import BaseHTTPServer; \\
         }, sort_keys=True, indent=4)
         test_url = tests[n]['uri']
         try:
-            resp = urllib2.urlopen(test_url, test_data)
+            resp = urllib.request.urlopen(test_url, test_data.encode())
             test_result = json.loads(resp.read())
-        except urllib2.HTTPError as e:
+        except HTTPError as e:
             sys.stderr.write("Error: test_data:\n")
             sys.stderr.write("POST {0}\n".format(test_url))
             sys.stderr.write(test_data)
@@ -357,9 +355,9 @@ sudo python -c "import BaseHTTPServer; \\
         sys.stderr.write("Waiting for {0} challenge to pass...\n".format(i['domain']))
         while True:
             try:
-                resp = urllib2.urlopen(test_url)
+                resp = urllib.request.urlopen(test_url)
                 challenge_status = json.loads(resp.read())
-            except urllib2.HTTPError as e:
+            except HTTPError as e:
                 sys.stderr.write("Error: test_data:\n")
                 sys.stderr.write("GET {0}\n".format(test_url))
                 sys.stderr.write(test_data)
@@ -387,9 +385,9 @@ sudo python -c "import BaseHTTPServer; \\
     }, sort_keys=True, indent=4)
     csr_url = "{0}/acme/new-cert".format(CA)
     try:
-        resp = urllib2.urlopen(csr_url, csr_data)
+        resp = urllib.request.urlopen(csr_url, csr_data.encode())
         signed_der = resp.read()
-    except urllib2.HTTPError as e:
+    except HTTPError as e:
         sys.stderr.write("Error: csr_data:\n")
         sys.stderr.write("POST {0}\n".format(csr_url))
         sys.stderr.write(csr_data)
