@@ -412,7 +412,7 @@ sudo python -c "import BaseHTTPServer; \\
 -----BEGIN CERTIFICATE-----
 {0}
 -----END CERTIFICATE-----
-""".format("\n".join(textwrap.wrap(signed_der64, 64)))
+""".format("\n".join(textwrap.wrap(signed_der64.decode(), 64)))
 
     return signed_pem
 
