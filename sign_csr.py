@@ -30,7 +30,10 @@ def sign_csr(pubkey, csr, email=None, file_based=False):
 
     def _b64(b):
         "Shortcut function to go from bytes to jwt base64 string"
-        return base64.urlsafe_b64encode(b).replace("=", "")
+        if type(b) is str:
+            b = b.encode()
+
+        return base64.urlsafe_b64encode(b).decode().replace("=", "")
 
     # Step 1: Get account public key
     sys.stderr.write("Reading pubkey file...\n")
