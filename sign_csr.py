@@ -61,7 +61,7 @@ def sign_csr(pubkey, csr, email=None, file_based=False):
         },
     }
     accountkey_json = json.dumps(header['jwk'], sort_keys=True, separators=(',', ':'))
-    thumbprint = _b64(hashlib.sha256(accountkey_json).digest())
+    thumbprint = _b64(hashlib.sha256(accountkey_json.encode()).digest())
     sys.stderr.write("Found public key!\n")
 
     # Step 2: Get the domain names to be certified
