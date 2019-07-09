@@ -81,7 +81,7 @@ openssl dgst -sha256 -sign user.key -out {0} {1}
 
     temp_stdout = sys.stdout
     sys.stdout = sys.stderr
-    raw_input("Press Enter when you've run the above command in a new terminal window...")
+    input("Press Enter when you've run the above command in a new terminal window...")
     sys.stdout = temp_stdout
 
     # Step 4: Load the signature and send the revokation request
