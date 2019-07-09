@@ -19,7 +19,10 @@ def revoke_crt(pubkey, crt):
 
     def _b64(b):
         "Shortcut function to go from bytes to jwt base64 string"
-        return base64.urlsafe_b64encode(b).replace("=", "")
+        if type(b) is str:
+            b = b.encode()
+
+        return base64.urlsafe_b64encode(b).decode().replace("=", "")
 
     def _a64(a):
         "Shortcut function to go from jwt base64 string to bytes"
