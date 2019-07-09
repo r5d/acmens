@@ -65,7 +65,7 @@ def revoke_crt(pubkey, crt):
     crt_protected.update({"nonce": urlopen(nonce_req).headers['Replay-Nonce']})
     crt_protected64 = _b64(json.dumps(crt_protected, sort_keys=True, indent=4))
     crt_file = tempfile.NamedTemporaryFile(dir=".", prefix="revoke_", suffix=".json")
-    crt_file.write("{0}.{1}".format(crt_protected64, crt_b64))
+    crt_file.write("{0}.{1}".format(crt_protected64, crt_b64).encode())
     crt_file.flush()
     crt_file_name = os.path.basename(crt_file.name)
     crt_file_sig = tempfile.NamedTemporaryFile(dir=".", prefix="revoke_", suffix=".sig")
