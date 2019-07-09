@@ -1,7 +1,8 @@
-#!/usr/bin/env python
-import argparse, subprocess, json, os, urllib2, sys, base64, binascii, copy, \
+#!/usr/bin/env python3
+import argparse, subprocess, json, os, urllib.request, sys, base64, binascii, copy, \
     tempfile, re
 
+from urllib.request import urlopen
 
 def revoke_crt(pubkey, crt):
     """Use the ACME protocol to revoke an ssl certificate signed by a
@@ -12,7 +13,7 @@ def revoke_crt(pubkey, crt):
     """
     #CA = "https://acme-staging.api.letsencrypt.org"
     CA = "https://acme-v01.api.letsencrypt.org"
-    nonce_req = urllib2.Request("{0}/directory".format(CA))
+    nonce_req = urllib.request.Request("{0}/directory".format(CA))
     nonce_req.get_method = lambda : 'HEAD'
 
     def _b64(b):
@@ -60,7 +61,7 @@ def revoke_crt(pubkey, crt):
     }, sort_keys=True, indent=4)
     crt_b64 = _b64(crt_raw)
     crt_protected = copy.deepcopy(header)
-    crt_protected.update({"nonce": urllib2.urlopen(nonce_req).headers['Replay-Nonce']})
+    crt_protected.update({"nonce": urlopen(nonce_req).headers['Replay-Nonce']})
     crt_protected64 = _b64(json.dumps(crt_protected, sort_keys=True, indent=4))
     crt_file = tempfile.NamedTemporaryFile(dir=".", prefix="revoke_", suffix=".json")
     crt_file.write("{0}.{1}".format(crt_protected64, crt_b64))
@@ -93,7 +94,7 @@ openssl dgst -sha256 -sign user.key -out {0} {1}
         "signature": crt_sig64,
     }, sort_keys=True, indent=4)
     try:
-        resp = urllib2.urlopen("{0}/acme/revoke-cert".format(CA), crt_data)
+        resp = urlopen("{0}/acme/revoke-cert".format(CA), crt_data.encode())
         signed_der = resp.read()
     except urllib2.HTTPError as e:
         sys.stderr.write("Error: crt_data:\n")
