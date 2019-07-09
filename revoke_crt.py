@@ -3,6 +3,7 @@ import argparse, subprocess, json, os, urllib.request, sys, base64, binascii, co
     tempfile, re
 
 from urllib.request import urlopen
+from urllib.error import HTTPError
 
 def revoke_crt(pubkey, crt):
     """Use the ACME protocol to revoke an ssl certificate signed by a
@@ -96,7 +97,7 @@ openssl dgst -sha256 -sign user.key -out {0} {1}
     try:
         resp = urlopen("{0}/acme/revoke-cert".format(CA), crt_data.encode())
         signed_der = resp.read()
-    except urllib2.HTTPError as e:
+    except HTTPError as e:
         sys.stderr.write("Error: crt_data:\n")
         sys.stderr.write(crt_data)
         sys.stderr.write("\n")
