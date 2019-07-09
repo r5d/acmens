@@ -48,7 +48,7 @@ but they do fantastic work.
 ## Prerequisites
 
 * openssl
-* python
+* python3
 
 ## How to use the signing script
 
@@ -83,7 +83,7 @@ By default the script will ask you to start a webserver on port 80.  If you
 already have one, use the `--file-based` option instead.
 
 ```sh
-python sign_csr.py --public-key user.pub domain.csr > signed.crt
+python3 sign_csr.py --public-key user.pub domain.csr > signed.crt
 ```
 
 When you run the script, it will ask you do do some manual commands. It has to
@@ -105,7 +105,7 @@ because this script does not have access to your private keys.
 
 ### Help text
 ```
-user@hostname:~$ python sign_csr.py --help
+user@hostname:~$ python3 sign_csr.py --help
 usage: sign_csr.py [-h] -p PUBLIC_KEY [-e EMAIL] csr_path
 
 Get a SSL certificate signed by a Let's Encrypt (ACME) certificate authority and
@@ -118,7 +118,7 @@ NOTE: YOUR ACCOUNT KEY NEEDS TO BE DIFFERENT FROM YOUR DOMAIN KEY.
 
 Prerequisites:
 * openssl
-* python
+* python3
 
 Example: Generate an account keypair, a domain key and csr, and have the domain csr signed.
 --------------
@@ -126,7 +126,7 @@ $ openssl genrsa 4096 > user.key
 $ openssl rsa -in user.key -pubout > user.pub
 $ openssl genrsa 4096 > domain.key
 $ openssl req -new -sha256 -key domain.key -subj "/CN=example.com" > domain.csr
-$ python sign_csr.py --public-key user.pub domain.csr > signed.crt
+$ python3 sign_csr.py --public-key user.pub domain.csr > signed.crt
 --------------
 
 positional arguments:
@@ -159,7 +159,7 @@ Generating RSA private key, 4096 bit long modulus
 ...........................................++
 e is 65537 (0x10001)
 user@hostname:~$ openssl req -new -sha256 -key domain.key -subj "/CN=letsencrypt.daylightpirates.org" > domain.csr
-user@hostname:~$ python sign_csr.py --public-key user.pub domain.csr > signed.crt
+user@hostname:~$ python3 sign_csr.py --public-key user.pub domain.csr > signed.crt
 Reading pubkey file...
 Found public key!
 Reading csr file...
@@ -323,7 +323,7 @@ or absolute.  If you wish to give the script access to your user private key, it
 can accept that as an optional argument.
 
 ```sh
-python revoke_crt.py --public-key user.pub domain.crt
+python3 revoke_crt.py --public-key user.pub domain.crt
 ```
 
 When you run the script, it will ask you do one manual signature.  It has to ask you
@@ -345,7 +345,7 @@ because this script does not have access to your private keys.
 
 ### Help text
 ```
-user@hostname:~$ python revoke_crt.py --help
+user@hostname:~$ python3 revoke_crt.py --help
 usage: revoke_crt.py [-h] -p PUBLIC_KEY [-r PRIVATE_KEY] crt_path
 
 Get a SSL certificate revoked by a Let's Encrypt (ACME) certificate authority.
@@ -358,11 +358,11 @@ NOTE: YOUR PUBLIC KEY NEEDS TO BE THE SAME KEY USED TO ISSUE THE CERTIFICATE.
 
 Prerequisites:
 * openssl
-* python
+* python3
 
 Example:
 --------------
-$ python revoke_crt.py --public-key user.pub domain.crt
+$ python3 revoke_crt.py --public-key user.pub domain.crt
 --------------
 
 positional arguments:
@@ -379,7 +379,7 @@ user@hostname:~$
 
 ### Commands (what you do in your main terminal window)
 ```
-user@hostname:~$ python revoke_crt.py --public-key user.pub domain.crt
+user@hostname:~$ python3 revoke_crt.py --public-key user.pub domain.crt
 Reading pubkey file...
 Found public key!
 STEP 1: You need to sign a file (replace 'user.key' with your user private key)
