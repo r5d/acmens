@@ -101,7 +101,7 @@ openssl dgst -sha256 -sign user.key -out {0} {1}
         sys.stderr.write("Error: crt_data:\n")
         sys.stderr.write(crt_data)
         sys.stderr.write("\n")
-        sys.stderr.write(e.read())
+        sys.stderr.write(e.read().decode())
         sys.stderr.write("\n")
         raise
     sys.stderr.write("Certificate revoked!\n")
