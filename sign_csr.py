@@ -237,9 +237,9 @@ Prerequisites:
 
 Example: Generate an account keypair, a domain key and csr, and have the domain csr signed.
 --------------
-$ openssl genrsa 4096 > user.key
+$ openssl genrsa -aes256 4096 > user.key
 $ openssl rsa -in user.key -pubout > user.pub
-$ openssl genrsa 4096 > domain.key
+$ openssl genrsa -aes256 4096 > domain.key
 $ openssl req -new -sha256 -key domain.key -subj "/CN=example.com" > domain.csr
 $ python3 sign_csr.py --account-key user.key --email user@example.com domain.csr > signed.crt
 --------------
