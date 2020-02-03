@@ -16,12 +16,10 @@ it signed. The script goes through the [ACME protocol](https://github.com/ietf-w
 with the Let's Encrypt certificate authority and outputs the signed certificate
 to stdout.
 
-This script doesn't know or ask for your private key, and it doesn't need to be
-run on your server. There are some parts of the ACME protocol that require your
-private key and access to your server. For those parts, this script prints out
-very minimal commands for you to run to complete the requirements. There is only
-one command that needs to be run as root on your server and it is a very simple
-python https server that you can inspect for yourself before you run it.
+This script is meant to be run on your computer locally. It requires you to pass
+your account private key. If the account private key is encrypted, openssl will
+directly ask for the passphrase each time the private key is needed to sign
+requests or data.
 
 ## Table of Contents
 
