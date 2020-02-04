@@ -99,27 +99,27 @@ When you run the script, it will:
 ### Help text
 ```
 user@hostname:~$ python3 sign_csr.py --help
-usage: sign_csr.py [-h] -p PUBLIC_KEY [-e EMAIL] csr_path
+usage: sign_csr.py [-h] -k ACCOUNT_KEY [-e EMAIL] csr_path
 
-Get a SSL certificate signed by a Let's Encrypt (ACME) certificate authority and
-output that signed certificate. You do NOT need to run this script on your
-server and this script does not ask for your private keys. It will print out
-commands that you need to run with your private key or on your server as root,
-which gives you a chance to review the commands instead of trusting this script.
+Get a SSL certificate signed by a Let's Encrypt (ACME) certificate
+authority and output that signed certificate. You do NOT need to run
+this script on your server, it is meant to be run on your
+computer. The script will request you to manually deploy the acme
+challenge on your server.
 
 NOTE: YOUR ACCOUNT KEY NEEDS TO BE DIFFERENT FROM YOUR DOMAIN KEY.
 
 Prerequisites:
 * openssl
-* python3
+* python version 3
 
 Example: Generate an account keypair, a domain key and csr, and have the domain csr signed.
 --------------
-$ openssl genrsa 4096 > user.key
+$ openssl genrsa -aes256 4096 > user.key
 $ openssl rsa -in user.key -pubout > user.pub
-$ openssl genrsa 4096 > domain.key
+$ openssl genrsa -aes256 4096 > domain.key
 $ openssl req -new -sha256 -key domain.key -subj "/CN=example.com" > domain.csr
-$ python3 sign_csr.py --public-key user.pub domain.csr > signed.crt
+$ python3 sign_csr.py --account-key user.key --email user@example.com domain.csr > signed.crt
 --------------
 
 positional arguments:
@@ -127,11 +127,10 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -p PUBLIC_KEY, --public-key PUBLIC_KEY
-                        path to your account public key
+  -k ACCOUNT_KEY, --account-key ACCOUNT_KEY
+                        path to your Let's Encrypt account private key
   -e EMAIL, --email EMAIL
                         contact email, default is webmaster@<shortest_domain>
-  -f, --file-based      if set, a file-based response is used
 user@hostname:~$
 ```
 
