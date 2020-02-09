@@ -358,23 +358,15 @@ user@hostname:~$
 
 ### Commands (what you do in your main terminal window)
 ```
-user@hostname:~$ python3 revoke_crt.py --public-key user.pub domain.crt
+user@hostname:~$ python3 revoke_crt.py -k user.key chained.pem
 Reading pubkey file...
+Enter pass phrase for user.key:
 Found public key!
-STEP 1: You need to sign a file (replace 'user.key' with your user private key)
-
-openssl dgst -sha256 -sign user.key -out revoke_Z5Qxj3.sig revoke_TKSK9w.json
-
-Press Enter when you've run the above command in a new terminal window...
-Requesting revocation...
+Getting account info...
+Enter pass phrase for user.key:
+Enter pass phrase for user.key:
 Certificate revoked!
 user@hostname:~$
-```
-
-### Manual Command (the stuff the script asked you to do in a 2nd terminal)
-```
-#signed files
-user@hostname:~$ openssl dgst -sha256 -sign user.key -out revoke_Z5Qxj3.sig revoke_TKSK9w.json
 ```
 
 ## Alternative: Official Let's Encrypt Client
