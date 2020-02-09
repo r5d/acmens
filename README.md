@@ -138,58 +138,60 @@ user@hostname:~$
 
 ### Commands (what you do in your main terminal window)
 ```
-user@hostname:~$ openssl genrsa 4096 > user.key
+user@hostname:~$ openssl genrsa -aes256 4096 > user.key
 Generating RSA private key, 4096 bit long modulus
-.............................................................................................................................................................................++
-....................................................++
+.....................................++++
+...................................................++++
 e is 65537 (0x10001)
-user@hostname:~$ openssl rsa -in user.key -pubout > user.pub
-writing RSA key
-user@hostname:~$ openssl genrsa 4096 > domain.key
+Enter pass phrase:
+Verifying - Enter pass phrase:
+user@hostname:~$ openssl genrsa -aes256 4096 > domain.key
 Generating RSA private key, 4096 bit long modulus
-.................................................................................................................................................................................++
-...........................................++
+................................................++++
+.................................................................................................................++++
 e is 65537 (0x10001)
+Enter pass phrase:
+Verifying - Enter pass phrase:
 user@hostname:~$ openssl req -new -sha256 -key domain.key -subj "/CN=letsencrypt.daylightpirates.org" > domain.csr
-user@hostname:~$ python3 sign_csr.py --public-key user.pub domain.csr > signed.crt
+Enter pass phrase for domain.key:
+user@hostname:~$ python3 sign_csr.py -k user.key -e daniel@roesler.cc domain.csr > chained.pem
 Reading pubkey file...
+Enter pass phrase for user.key:
 Found public key!
 Reading csr file...
 Found domains letsencrypt.daylightpirates.org
-STEP 1: What is your contact email? (webmaster@letsencrypt.daylightpirates.org) daniel@roesler.cc
-Building request payloads...
-STEP 2: You need to sign some files (replace 'user.key' with your user private key).
-
-openssl dgst -sha256 -sign user.key -out register_KN2ihH.sig register_ABUO4T.json
-openssl dgst -sha256 -sign user.key -out domain_BbpWG4.sig domain_rSKa5G.json
-openssl dgst -sha256 -sign user.key -out challenge_fo6_ib.sig challenge_e3gHzd.json
-openssl dgst -sha256 -sign user.key -out cert_36OUdW.sig cert_3IZULZ.json
-
-Press Enter when you've run the above commands in a new terminal window...
 Registering daniel@roesler.cc...
-Already registered. Skipping...
-Requesting challenges for letsencrypt.daylightpirates.org...
-STEP 3: You need to sign some more files (replace 'user.key' with your user private key).
+Enter pass phrase for user.key:
+Already registered!
+Making new order for letsencrypt.daylightpirates.org...
+Enter pass phrase for user.key:
+Requesting challenges...
+Enter pass phrase for user.key:
+Please update your server to serve the following file at this URL:
 
-openssl dgst -sha256 -sign user.key -out response_ATE3Yu.sig response_P87LMt.json
+--------------
+URL: http://letsencrypt.daylightpirates.org/.well-known/acme-challenge/fcGheyb6yNjSQ7oQ3hFXZqCRpKHrkeq9eBFOcloAO_k
+File contents: "fcGheyb6yNjSQ7oQ3hFXZqCRpKHrkeq9eBFOcloAO_k.aY_r0djPrHVGZ6MONmcsSN84_mUmUtHydtPGFq7LKWY"
+--------------
 
-Press Enter when you've run the above commands in a new terminal window...
-STEP 4: You need to run this command on letsencrypt.daylightpirates.org (don't stop the python command until the next step).
+Notes:
+- Do not include the quotes in the file.
+- The file should be one line without any spaces.
 
-sudo python -c "import BaseHTTPServer; \
-    h = BaseHTTPServer.BaseHTTPRequestHandler; \
-    h.do_GET = lambda r: r.send_response(200) or r.end_headers() or r.wfile.write('{\"header\": {\"alg\": \"RS256\"}, \"protected\": \"eyJhbGciOiAiUlMyNTYifQ\", \"payload\": \"ewogICAgInRscyI6IGZhbHNlLCAKICAgICJ0b2tlbiI6ICJkbzVaWkMwMHVwZmNFN0tjeEhzOGNyS2FNaE02UFdBdTMtMnVwZ00zRG00IiwgCiAgICAidHlwZSI6ICJzaW1wbGVIdHRwIgp9\", \"signature\": \"Gp5V68da_XdC96piXs1YOhrv4USOQBNnhIL-CMmxvKSigmxAJ8z00xsgWS6nsYD8LPpMVa3GkXhb10qfbymPiWhtMpMYZ31kMLFwgpHrY9xkiNP-WK9Zljz6L-WAzxCOmF1Ov71z_75iEJij86E2f9EmTjDlmDmGAjP9lziII42uyyjjIZg9claU1GtFZUrfXd-uNHHEGHFUpoyLHQcyWCP1T04Xx4q4dY51VeOJNOmIv9csIjkbOma7EqFMAHwYAplAUE45FQ5N9lJvpymD49BoEgQj_kjH-UPnxO3q0QB0i-MJJCiwQYAhMKV618jV9rNE181zJ1FRkX48knMzqoE4oG3yEFUg2D_vAdFG3VCuotnuxrZ7BEzDPWyEm0z8XakxWQW-xHSADtKWRr1qsQCy7qVsoAKnVFQ_1b4rAzET1YfrmhSH4MVhMB5n9tOnjtPQ0OsJVbf0oVLh5AC1rbXe68weOQExDVJgsk56x3FvvwrmdaLe2TnbPJmzpkYUf1OK88e8KmhVYb34veuY1luDOBJQyQ9fOAGZC0F-g7SpWg1lp3hQzf5enkycHMK-fNAfFH7t1m1Ej_CvUuxfBVhI0W8ANpFWL4r8PxTZaZzE6NO38MYgB9nrICiKJuuTQQbsXdjOm22QuxrG1XpWA-vQCtbk-L891Ko6MdAUMzQ\"}'); \
-    s = BaseHTTPServer.HTTPServer(('0.0.0.0', 80), h); \
-    s.serve_forever()"
-
-Press Enter when you've got the python command running on your server...
+Press Enter when you've got the file hosted on your server...
 Requesting verification for letsencrypt.daylightpirates.org...
+Enter pass phrase for user.key:
+Enter pass phrase for user.key:
+letsencrypt.daylightpirates.org verified!
+Enter pass phrase for user.key:
 Waiting for letsencrypt.daylightpirates.org challenge to pass...
+Enter pass phrase for user.key:
 Passed letsencrypt.daylightpirates.org challenge!
-Requesting signature...
-Certificate signed!
-You can stop running the python command on your server (Ctrl+C works).
-user@hostname:~$ cat signed.crt
+Getting certificate...
+Enter pass phrase for user.key:
+Received certificate!
+You can remove the acme-challenge file from your webserver now.
+user@hostname:~$ cat chained.pem
 -----BEGIN CERTIFICATE-----
 MIIGJTCCBQ2gAwIBAgISATBRUGjFwTtjF4adpF7zd/5qMA0GCSqGSIb3DQEBCwUA
 MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
@@ -225,39 +227,43 @@ ncyFqSSZl1j9e5l+Kpj/GeTCwkwck5U75Ry44kPbnu5JLd70P724gBnyEi6IxXHB
 txXZEUmI0R1Ee3Kw/5N6JfeWNE1KEmM47VVFomRitruxBj9nlXtIILvkPCTWkDua
 pr1OmFi/rUcaHw+Txbs8aBmZEBkxy9HPSfgqqlYqEd0ipGqFtqaFJEI=
 -----END CERTIFICATE-----
-user@hostname:~$
-```
 
-### Manual Commands (the stuff the script asked you to do in a 2nd terminal)
-```
-#first set of signed files
-user@hostname:~$ openssl dgst -sha256 -sign user.key -out register_KN2ihH.sig register_ABUO4T.json
-user@hostname:~$ openssl dgst -sha256 -sign user.key -out domain_BbpWG4.sig domain_rSKa5G.json
-user@hostname:~$ openssl dgst -sha256 -sign user.key -out challenge_fo6_ib.sig challenge_e3gHzd.json
-user@hostname:~$ openssl dgst -sha256 -sign user.key -out cert_36OUdW.sig cert_3IZULZ.json
-user@hostname:~$
-
-#second set of signed files
-user@hostname:~$ openssl dgst -sha256 -sign user.key -out response_ATE3Yu.sig response_P87LMt.json
+-----BEGIN CERTIFICATE-----
+MIIEkjCCA3qgAwIBAgIQCgFBQgAAAVOFc2oLheynCDANBgkqhkiG9w0BAQsFADA/
+MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT
+DkRTVCBSb290IENBIFgzMB4XDTE2MDMxNzE2NDA0NloXDTIxMDMxNzE2NDA0Nlow
+SjELMAkGA1UEBhMCVVMxFjAUBgNVBAoTDUxldCdzIEVuY3J5cHQxIzAhBgNVBAMT
+GkxldCdzIEVuY3J5cHQgQXV0aG9yaXR5IFgzMIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEAnNMM8FrlLke3cl03g7NoYzDq1zUmGSXhvb418XCSL7e4S0EF
+q6meNQhY7LEqxGiHC6PjdeTm86dicbp5gWAf15Gan/PQeGdxyGkOlZHP/uaZ6WA8
+SMx+yk13EiSdRxta67nsHjcAHJyse6cF6s5K671B5TaYucv9bTyWaN8jKkKQDIZ0
+Z8h/pZq4UmEUEz9l6YKHy9v6Dlb2honzhT+Xhq+w3Brvaw2VFn3EK6BlspkENnWA
+a6xK8xuQSXgvopZPKiAlKQTGdMDQMc2PMTiVFrqoM7hD8bEfwzB/onkxEz0tNvjj
+/PIzark5McWvxI0NHWQWM6r6hCm21AvA2H3DkwIDAQABo4IBfTCCAXkwEgYDVR0T
+AQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwfwYIKwYBBQUHAQEEczBxMDIG
+CCsGAQUFBzABhiZodHRwOi8vaXNyZy50cnVzdGlkLm9jc3AuaWRlbnRydXN0LmNv
+bTA7BggrBgEFBQcwAoYvaHR0cDovL2FwcHMuaWRlbnRydXN0LmNvbS9yb290cy9k
+c3Ryb290Y2F4My5wN2MwHwYDVR0jBBgwFoAUxKexpHsscfrb4UuQdf/EFWCFiRAw
+VAYDVR0gBE0wSzAIBgZngQwBAgEwPwYLKwYBBAGC3xMBAQEwMDAuBggrBgEFBQcC
+ARYiaHR0cDovL2Nwcy5yb290LXgxLmxldHNlbmNyeXB0Lm9yZzA8BgNVHR8ENTAz
+MDGgL6AthitodHRwOi8vY3JsLmlkZW50cnVzdC5jb20vRFNUUk9PVENBWDNDUkwu
+Y3JsMB0GA1UdDgQWBBSoSmpjBH3duubRObemRWXv86jsoTANBgkqhkiG9w0BAQsF
+AAOCAQEA3TPXEfNjWDjdGBX7CVW+dla5cEilaUcne8IkCJLxWh9KEik3JHRRHGJo
+uM2VcGfl96S8TihRzZvoroed6ti6WqEBmtzw3Wodatg+VyOeph4EYpr/1wXKtx8/
+wApIvJSwtmVi4MFU5aMqrSDE6ea73Mj2tcMyo5jMd6jmeWUHK8so/joWUoHOUgwu
+X4Po1QYz+3dszkDqMp4fklxBwXRsW10KXzPMTZ+sOPAveyxindmjkW8lGy+QsRlG
+PfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6
+KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==
+-----END CERTIFICATE-----
 user@hostname:~$
 ```
 
 ### Server Commands (the stuff the script asked you to do on your server)
 ```
-ubuntu@letsencrypt.daylightpirates.org:~$ sudo python -c "import BaseHTTPServer; \
->     h = BaseHTTPServer.BaseHTTPRequestHandler; \
->     h.do_GET = lambda r: r.send_response(200) or r.end_headers() or r.wfile.write('{\"header\": {\"alg\": \"RS256\"}, \"protected\": \"eyJhbGciOiAiUlMyNTYifQ\", \"payload\": \"ewogICAgInRscyI6IGZhbHNlLCAKICAgICJ0b2tlbiI6ICJkbzVaWkMwMHVwZmNFN0tjeEhzOGNyS2FNaE02UFdBdTMtMnVwZ00zRG00IiwgCiAgICAidHlwZSI6ICJzaW1wbGVIdHRwIgp9\", \"signature\": \"Gp5V68da_XdC96piXs1YOhrv4USOQBNnhIL-CMmxvKSigmxAJ8z00xsgWS6nsYD8LPpMVa3GkXhb10qfbymPiWhtMpMYZ31kMLFwgpHrY9xkiNP-WK9Zljz6L-WAzxCOmF1Ov71z_75iEJij86E2f9EmTjDlmDmGAjP9lziII42uyyjjIZg9claU1GtFZUrfXd-uNHHEGHFUpoyLHQcyWCP1T04Xx4q4dY51VeOJNOmIv9csIjkbOma7EqFMAHwYAplAUE45FQ5N9lJvpymD49BoEgQj_kjH-UPnxO3q0QB0i-MJJCiwQYAhMKV618jV9rNE181zJ1FRkX48knMzqoE4oG3yEFUg2D_vAdFG3VCuotnuxrZ7BEzDPWyEm0z8XakxWQW-xHSADtKWRr1qsQCy7qVsoAKnVFQ_1b4rAzET1YfrmhSH4MVhMB5n9tOnjtPQ0OsJVbf0oVLh5AC1rbXe68weOQExDVJgsk56x3FvvwrmdaLe2TnbPJmzpkYUf1OK88e8KmhVYb34veuY1luDOBJQyQ9fOAGZC0F-g7SpWg1lp3hQzf5enkycHMK-fNAfFH7t1m1Ej_CvUuxfBVhI0W8ANpFWL4r8PxTZaZzE6NO38MYgB9nrICiKJuuTQQbsXdjOm22QuxrG1XpWA-vQCtbk-L891Ko6MdAUMzQ\"}'); \
->     s = BaseHTTPServer.HTTPServer(('0.0.0.0', 80), h); \
->     s.serve_forever()"
-66.133.109.36 - - [24/Oct/2015 06:58:10] "GET /.well-known/acme-challenge/do5ZZC00upfcE7KcxHs8crKaMhM6PWAu3-2upgM3Dm4 HTTP/1.1" 200 -
-^CTraceback (most recent call last):
-  File "<string>", line 1, in <module>
-  File "/usr/lib/python2.7/SocketServer.py", line 236, in serve_forever
-    poll_interval)
-  File "/usr/lib/python2.7/SocketServer.py", line 155, in _eintr_retry
-    return func(*args)
-KeyboardInterrupt
-ubuntu@letsencrypt.daylightpirates.org:~$
+ubuntu@letsencrypt.daylightpirates.org:~$ cd /var/www/root
+ubuntu@letsencrypt.daylightpirates.org:/var/www/root$ mkdir -p .well-known/acme-challenge/
+ubuntu@letsencrypt.daylightpirates.org:/var/www/root$ echo "fcGheyb6yNjSQ7oQ3hFXZqCRpKHrkeq9eBFOcloAO_k.aY_r0djPrHVGZ6MONmcsSN84_mUmUtHydtPGFq7LKWY" > .well-known/acme-challenge/fcGheyb6yNjSQ7oQ3hFXZqCRpKHrkeq9eBFOcloAO_k
+ubuntu@letsencrypt.daylightpirates.org:/var/www/root$
 ```
 
 ## How to use the signed https certificate
