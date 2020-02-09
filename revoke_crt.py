@@ -116,7 +116,7 @@ Get a SSL certificate revoked by a Let's Encrypt (ACME) certificate
 authority.  You do NOT need to run this script on your server, it is
 meant to be run on your computer.
 
-NOTE: YOUR PUBLIC KEY NEEDS TO BE THE SAME KEY USED TO ISSUE THE CERTIFICATE.
+NOTE: YOUR USER KEY NEEDS TO BE THE SAME KEY USED TO ISSUE THE CERTIFICATE.
 
 Prerequisites:
 * openssl
@@ -124,7 +124,7 @@ Prerequisites:
 
 Example:
 --------------
-$ python3 revoke_crt.py --public-key user.pub domain.crt
+$ python3 revoke_crt.py --account-key user.key domain.crt
 --------------
 
 """)
