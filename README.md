@@ -274,10 +274,11 @@ with your private key to run an https server. You just securely transfer (using
 include them in the https settings in your web server's configuration. Here's an
 example on how to configure an nginx server:
 
+An unencrypted version of the domain private key needs to be deployed on the
+server, to decrypt domain private key do:
+
 ```
-#NOTE: For nginx, you need to append the Let's Encrypt intermediate cert to your cert
-user@hostname:~$ wget https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem
-user@hostname:~$ cat signed.crt lets-encrypt-x3-cross-signed.pem > chained.pem
+openssl rsa -in domain.key -out domain.d.key
 ```
 
 ```nginx
@@ -286,7 +287,7 @@ server {
     server_name letsencrypt.daylightpirates.org;
     ssl on;
     ssl_certificate chained.pem;
-    ssl_certificate_key domain.key;
+    ssl_certificate_key domain.d.key;
     ssl_session_timeout 5m;
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
     ssl_ciphers ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA;
