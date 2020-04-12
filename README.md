@@ -4,24 +4,18 @@ A fork of [acme-nosudo][]. It uses ACMEv2 protocol and requires Python 3.
 
 [acme-nosudo]: https://github.com/diafygi/acme-nosudo
 
-acmens has two scripts:
+The `acmens` may be used for getting a new SSL certificate or renewing
+a SSL certificate for a domain and revoking a certificate for a
+domain.
 
- - acmens.py
- - revoke_crt.py
-
-The `acmens.py` is for getting a new SSL certificate or renewing a
-SSL certificate for a domain.
-
-The `revoke_crt.py` is for revoking a certificate for a domain.
-
-Both scripts are meant to be run locally from your computer.
+It's meant to be run locally from your computer.
 
 ## Prerequisites
 
 * openssl
 * python3
 
-## How to use the signing script
+## getting/renewing a certificate
 
 First, you need to generate an user account key for Let's Encrypt.
 This is the key that you use to register with Let's Encrypt. If you
@@ -69,18 +63,18 @@ When you run the script, it will:
  - Will write the certificate to `signed.crt` if ACME HTTP challenge is
    successful.
 
-## How to use the revocation script
+## revoking a certificate
 
 First, you will need to the user account key for Let's Encrypt that was used
 when the certifacate was signed.
 
 Second, you will need the PEM encoded signed certificate that was produced by
-`acmens.py`.
+`acmens`.
 
 Third, you run the script using python and passing in the path to your user
 account key and the signed domain certificate. The paths can be relative or
 absolute.
 
 ```sh
-python3 revoke_crt.py -k user.key domain.crt
+python3 acmens.py --revoke -k user.key --crt domain.crt
 ```
