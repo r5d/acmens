@@ -6,10 +6,10 @@ A fork of [acme-nosudo][]. It uses ACMEv2 protocol and requires Python 3.
 
 acmens has two scripts:
 
- - sign_csr.py
+ - acmens.py
  - revoke_crt.py
 
-The `sign_csr.py` is for getting a new SSL certificate or renewing a
+The `acmens.py` is for getting a new SSL certificate or renewing a
 SSL certificate for a domain.
 
 The `revoke_crt.py` is for revoking a certificate for a domain.
@@ -53,7 +53,7 @@ account private key, email address, and the domain CSR. The paths can be
 relative or absolute.
 
 ```sh
-python3 sign_csr.py --account-key user.key --email mail@example.com domain.csr > signed.crt
+python3 acmens.py --account-key user.key --email mail@example.com domain.csr > signed.crt
 ```
 
 When you run the script, it will:
@@ -75,7 +75,7 @@ First, you will need to the user account key for Let's Encrypt that was used
 when the certifacate was signed.
 
 Second, you will need the PEM encoded signed certificate that was produced by
-`sign_csr.py`.
+`acmens.py`.
 
 Third, you run the script using python and passing in the path to your user
 account key and the signed domain certificate. The paths can be relative or
