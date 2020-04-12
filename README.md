@@ -4,9 +4,8 @@ A fork of [acme-nosudo][]. It uses ACMEv2 protocol and requires Python 3.
 
 [acme-nosudo]: https://github.com/diafygi/acme-nosudo
 
-The `acmens` may be used for getting a new SSL certificate or renewing
-a SSL certificate for a domain and revoking a certificate for a
-domain.
+`acmens` may be used for getting a new SSL certificate, renewing a SSL
+certificate for a domain, and revoking a certificate for a domain.
 
 It's meant to be run locally from your computer.
 
