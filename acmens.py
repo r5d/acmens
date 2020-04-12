@@ -247,9 +247,13 @@ $ python3 acmens.py --account-key user.key --email user@example.com domain.csr >
 """)
     parser.add_argument("-k", "--account-key", required=True, help="path to your Let's Encrypt account private key")
     parser.add_argument("-e", "--email", default=None, help="contact email, default is webmaster@<shortest_domain>")
-    parser.add_argument("csr_path", help="path to your certificate signing request")
+    parser.add_argument("--csr", help="path to your certificate signing request")
 
     args = parser.parse_args()
-    signed_crt = sign_csr(args.account_key, args.csr_path, email=args.email)
+    if args.csr is None:
+        sys.stderr.write('Error: Path to CSR required\n')
+        sys.exit(1)
+
+    signed_crt = sign_csr(args.account_key, args.csr, email=args.email)
     sys.stdout.write(signed_crt)
 

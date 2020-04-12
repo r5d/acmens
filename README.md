@@ -53,7 +53,7 @@ account private key, email address, and the domain CSR. The paths can be
 relative or absolute.
 
 ```sh
-python3 acmens.py --account-key user.key --email mail@example.com domain.csr > signed.crt
+python3 acmens.py --account-key user.key --email mail@example.com --csr domain.csr > signed.crt
 ```
 
 When you run the script, it will:
