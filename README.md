@@ -9,7 +9,7 @@ certificate for a domain, and revoking a certificate for a domain.
 
 It's meant to be run locally from your computer.
 
-## Prerequisites
+## prerequisites
 
 * openssl
 * python3
