@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import argparse, subprocess, json, os, urllib.request, sys, base64, binascii, \
     time, hashlib, tempfile, re, copy, textwrap
 
