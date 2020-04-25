@@ -35,7 +35,7 @@ config = {
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS',
         'Programming Language :: Python :: 3 :: Only',
-        'Topic :: System :: Systems Administration'
+        'Topic :: System :: Systems Administration',
         'Topic :: Utilities',
     ],
     'keywords': 'acme letsencrypt acmens',
