@@ -5,6 +5,10 @@ import argparse, subprocess, json, os, urllib.request, sys, base64, binascii, \
 from urllib.request import urlopen
 from urllib.error import HTTPError
 
+
+__version__ = '0.1.0.dev1'
+
+
 def sign_csr(account_key, csr, email=None):
     """Use the ACME protocol to get an ssl certificate signed by a
     certificate authority.
