@@ -41,6 +41,7 @@ config = {
     ],
     'keywords': 'acme letsencrypt acmens',
     'py_modules': ['acmens'],
+    'python_requires': '>=3',
     'entry_points': {
         'console_scripts': ['acmens = acmens:main']
     }
