@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Copyright © 2015-2018 Daniel Roesler <diafygi@gmail.com>
+# Copyright © 2020 rsiddharth <s@ricketyspace.net>
+#
 
 import argparse, subprocess, json, os, urllib.request, sys, base64, binascii, \
     time, hashlib, tempfile, re, copy, textwrap
