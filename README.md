@@ -11,7 +11,7 @@ It's meant to be run locally from your computer.
 
 ## prerequisites
 
-* openssl
+* openssl or libressl
 * python3
 
 ## getting/renewing a certificate
@@ -65,7 +65,7 @@ When you run the script, it will:
 ## revoking a certificate
 
 First, you will need to the user account key for Let's Encrypt that was used
-when the certifacate was signed.
+when the certificate was signed.
 
 Second, you will need the PEM encoded signed certificate that was produced by
 `acmens`.
