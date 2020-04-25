@@ -32,13 +32,11 @@ This is the key that you will get signed for free for your domain (replace
 and CSR for your domain, you can skip this step.
 
 ```sh
-#Create a CSR for example.com
-openssl genrsa -aes256 4096 > domain.key
-openssl req -new -sha256 -key domain.key -subj "/CN=example.com" > domain.csr
+# Generate domain key.
+openssl genrsa -aes256 -out domain.key 4096
 
-#Alternatively, if you want both example.com and www.example.com
-openssl genrsa -aes256 4096 > domain.key
-openssl req -new -sha256 -key domain.key -subj "/" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:example.com,DNS:www.example.com")) > domain.csr
+# Generate CSR
+openssl req -new -sha256 -key domain.key -out domain.csr
 ```
 
 Third, you run the script using python and passing in the path to your user

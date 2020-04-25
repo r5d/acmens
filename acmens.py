@@ -105,20 +105,15 @@ def sign_csr(account_key, csr, email=None):
     # Step 2: Get the domain names to be certified
     sys.stderr.write("Reading csr file...\n")
     out = _cmd(["openssl", "req", "-in", csr, "-noout", "-text"], err_msg="Error loading {}".format(csr))
-    domains = set([])
+    domain = None
     common_name = re.search("Subject:.*? CN *= *([^\s,;/]+)", out.decode('utf8'))
     if common_name is not None:
-        domains.add(common_name.group(1))
-    subject_alt_names = re.search("X509v3 Subject Alternative Name: \n +([^\n]+)\n", out.decode('utf8'), re.MULTILINE|re.DOTALL)
-    if subject_alt_names is not None:
-        for san in subject_alt_names.group(1).split(", "):
-            if san.startswith("DNS:"):
-                domains.add(san[4:])
-    sys.stderr.write("Found domains {0}\n".format(", ".join(domains)))
+        domain = common_name.group(1)
+    sys.stderr.write("Found domain {0}\n".format(domain))
 
     # Step 3: Ask user for contact email
     if not email:
-        default_email = "webmaster@{0}".format(min(domains, key=len))
+        default_email = "webmaster@{0}".format(domain)
         stdout = sys.stdout
         sys.stdout = sys.stderr
         input_email = input("STEP 1: What is your contact email? ({0}) ".format(default_email))
@@ -139,37 +134,36 @@ def sign_csr(account_key, csr, email=None):
         sys.stderr.write("Already registered!\n")
 
 
-    # Step 5: Request challenges for each domain
-    for domain in domains:
-        sys.stderr.write("Making new order for {0}...\n".format(domain))
-        id = {
-            "identifiers": [{
-                "type": "dns",
-                "value": domain,
-            }],
-        }
-        order, order_code, order_headers = _send_signed_request(DIRECTORY['newOrder'], id, "Error creating new order")
+    # Step 5: Request challenges for domain
+    sys.stderr.write("Making new order for {0}...\n".format(domain))
+    id = {
+        "identifiers": [{
+            "type": "dns",
+            "value": domain,
+        }],
+    }
+    order, order_code, order_headers = _send_signed_request(DIRECTORY['newOrder'], id, "Error creating new order")
 
-        # Request challenges
-        sys.stderr.write("Requesting challenges...\n")
-        chl_result, chl_code, chl_headers = _send_signed_request(order['authorizations'][0], None, "Error getting challenges")
+    # Request challenges
+    sys.stderr.write("Requesting challenges...\n")
+    chl_result, chl_code, chl_headers = _send_signed_request(order['authorizations'][0], None, "Error getting challenges")
 
-        challenge = [c for c in chl_result['challenges'] if c['type'] == "http-01"][0]
-        token = re.sub(r"[^A-Za-z0-9_\-]", "_", challenge['token'])
-        keyauthorization = "{0}.{1}".format(challenge['token'], thumbprint)
+    challenge = [c for c in chl_result['challenges'] if c['type'] == "http-01"][0]
+    token = re.sub(r"[^A-Za-z0-9_\-]", "_", challenge['token'])
+    keyauthorization = "{0}.{1}".format(challenge['token'], thumbprint)
 
-        # build request for the server to test this challenge.
-        test_url = challenge['url']
-        test_raw = "{}"
+    # build request for the server to test this challenge.
+    test_url = challenge['url']
+    test_raw = "{}"
 
-        # challenge response for server
-        response = {
-            "uri": ".well-known/acme-challenge/{0}".format(challenge['token']),
-            "data": keyauthorization,
-        }
+    # challenge response for server
+    response = {
+        "uri": ".well-known/acme-challenge/{0}".format(challenge['token']),
+        "data": keyauthorization,
+    }
 
-        # Step 6: Ask the user to host the token on their server
-        sys.stderr.write("""\
+    # Step 6: Ask the user to host the token on their server
+    sys.stderr.write("""\
 Please update your server to serve the following file at this URL:
 
 --------------
@@ -183,32 +177,31 @@ Notes:
 
 """.format(domain, response['uri'], response['data']))
 
-        stdout = sys.stdout
-        sys.stdout = sys.stderr
-        input("Press Enter when you've got the file hosted on your server...")
-        sys.stdout = stdout
+    stdout = sys.stdout
+    sys.stdout = sys.stderr
+    input("Press Enter when you've got the file hosted on your server...")
+    sys.stdout = stdout
 
-        # Step 7: Let the CA know you're ready for the challenge
-        sys.stderr.write("Requesting verification for {0}...\n".format(domain))
-        _send_signed_request(challenge['url'], {}, "Error requesting challenge verfication: {0}".format(domain))
-        chl_verification = _poll_until_not(challenge['url'], ["pending"], "Error checking challenge verification")
-        if chl_verification['status'] != "valid":
-            raise ValueError("Challenge did not pass for {0}: {1}".format(domain, chl_verification))
-        sys.stderr.write("{} verified!\n".format(domain))
+    # Step 7: Let the CA know you're ready for the challenge
+    sys.stderr.write("Requesting verification for {0}...\n".format(domain))
+    _send_signed_request(challenge['url'], {}, "Error requesting challenge verfication: {0}".format(domain))
+    chl_verification = _poll_until_not(challenge['url'], ["pending"], "Error checking challenge verification")
+    if chl_verification['status'] != "valid":
+        raise ValueError("Challenge did not pass for {0}: {1}".format(domain, chl_verification))
+    sys.stderr.write("{} verified!\n".format(domain))
 
-        # Step 8: Finalize
-        csr_der = _cmd(["openssl", "req", "-in", csr, "-outform", "DER"], err_msg="DER Export Error")
-        fnlz_resp, fnlz_code, fnlz_headers = _send_signed_request(order['finalize'], {"csr": _b64(csr_der)}, "Error finalizing order")
+    # Step 8: Finalize
+    csr_der = _cmd(["openssl", "req", "-in", csr, "-outform", "DER"], err_msg="DER Export Error")
+    fnlz_resp, fnlz_code, fnlz_headers = _send_signed_request(order['finalize'], {"csr": _b64(csr_der)}, "Error finalizing order")
 
-        # Step 9: Wait for CA to mark test as valid
-        sys.stderr.write("Waiting for {0} challenge to pass...\n".format(domain))
-        order = _poll_until_not(order_headers['Location'], ["pending", "processing"], "Error checking order status")
+    # Step 9: Wait for CA to mark test as valid
+    sys.stderr.write("Waiting for {0} challenge to pass...\n".format(domain))
+    order = _poll_until_not(order_headers['Location'], ["pending", "processing"], "Error checking order status")
 
-        if order['status'] == "valid":
-            sys.stderr.write("Passed {0} challenge!\n".format(domain))
-        else:
-            raise ValueError("'{0}' challenge did not pass: {1}".format(domain, order))
-
+    if order['status'] == "valid":
+        sys.stderr.write("Passed {0} challenge!\n".format(domain))
+    else:
+        raise ValueError("'{0}' challenge did not pass: {1}".format(domain, order))
 
     # Step 10: Get the certificate.
     sys.stderr.write("Getting certificate...\n")
