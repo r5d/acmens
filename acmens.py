@@ -315,7 +315,7 @@ def revoke_crt(account_key, crt):
     sys.stderr.write("Certificate revoked!\n")
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""\
@@ -368,3 +368,6 @@ $ python3 acmens.py --revoke --account-key user.key --crt domain.crt
         signed_crt = sign_csr(args.account_key, args.csr, email=args.email)
         sys.stdout.write(signed_crt)
 
+
+if __name__ == "__main__":
+    main()
