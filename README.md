@@ -13,6 +13,13 @@ It's meant to be run locally from your computer.
 
 * openssl or libressl
 * python3
+* pip
+
+## installation
+
+```sh
+pip install acmens
+```
 
 ## getting/renewing a certificate
 
@@ -44,7 +51,7 @@ account private key, email address, and the domain CSR. The paths can be
 relative or absolute.
 
 ```sh
-python3 acmens.py --account-key user.key --email mail@example.com --csr domain.csr > signed.crt
+acmens --account-key user.key --email mail@example.com --csr domain.csr > signed.crt
 ```
 
 When you run the script, it will:
@@ -73,5 +80,5 @@ account key and the signed domain certificate. The paths can be relative or
 absolute.
 
 ```sh
-python3 acmens.py --revoke -k user.key --crt domain.crt
+acmens --revoke -k user.key --crt domain.crt
 ```
