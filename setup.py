@@ -24,7 +24,7 @@ config = {
     'url': 'https://github.com/r5d/acmens',
     'author': 'rsiddharth',
     'author_email': 's@ricketyspace.net',
-    'license': 'GNU Affero General Public License version 3 or later',
+    'license': 'GNU Affero General Public License v3',
     'classifiers': [
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',
