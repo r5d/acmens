@@ -13,7 +13,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 def sign_csr(account_key, csr, email=None):
