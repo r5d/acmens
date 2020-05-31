@@ -351,12 +351,12 @@ $ openssl genrsa -aes256 4096 > user.key
 $ openssl rsa -in user.key -pubout > user.pub
 $ openssl genrsa -aes256 4096 > domain.key
 $ openssl req -new -sha256 -key domain.key -subj "/CN=example.com" > domain.csr
-$ python3 acmens.py --account-key user.key --email user@example.com --csr domain.csr > signed.crt
+$ acmens --account-key user.key --email user@example.com --csr domain.csr > signed.crt
 --------------
 
 Example: Revoking a signed certificate:
 --------------
-$ python3 acmens.py --revoke --account-key user.key --crt domain.crt
+$ acmens --revoke --account-key user.key --crt domain.crt
 --------------
 """);
     parser.add_argument("--revoke", action="store_true", help="Revoke a signed certificate")
