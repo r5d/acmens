@@ -6,14 +6,13 @@
 # Copyright © 2020 rsiddharth <s@ricketyspace.net>
 #
 
-import argparse, subprocess, json, os, urllib.request, sys, base64, binascii, \
-    time, hashlib, tempfile, re, copy, textwrap
+import argparse, subprocess, json, os, urllib.request, sys, base64, binascii, time, hashlib, tempfile, re, copy, textwrap
 
 from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = '0.1.2'
+__version__ = "0.1.3.dev1"
 
 
 def sign_csr(account_key, csr, email=None):
@@ -29,9 +28,9 @@ def sign_csr(account_key, csr, email=None):
     :rtype: string
 
     """
-    #CA = "https://acme-staging-v02.api.letsencrypt.org"
+    # CA = "https://acme-staging-v02.api.letsencrypt.org"
     CA = "https://acme-v02.api.letsencrypt.org"
-    DIRECTORY = json.loads(urlopen(CA + "/directory").read().decode('utf8'))
+    DIRECTORY = json.loads(urlopen(CA + "/directory").read().decode("utf8"))
 
     def _b64(b):
         "Shortcut function to go from bytes to jwt base64 string"
@@ -42,7 +41,9 @@ def sign_csr(account_key, csr, email=None):
 
     # helper function - run external commands
     def _cmd(cmd_list, stdin=None, cmd_input=None, err_msg="Command Line Error"):
-        proc = subprocess.Popen(cmd_list, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+            cmd_list, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         out, err = proc.communicate(cmd_input)
         if proc.returncode != 0:
             raise IOError("{0}\n{1}".format(err_msg, err))
@@ -51,52 +52,88 @@ def sign_csr(account_key, csr, email=None):
     # helper function - make request and automatically parse json response
     def _do_request(url, data=None, err_msg="Error", depth=0):
         try:
-            resp = urllib.request.urlopen(urllib.request.Request(url, data=data, headers={"Content-Type": "application/jose+json", "User-Agent": "acme-nosudo"}))
-            resp_data, code, headers = resp.read().decode("utf8"), resp.getcode(), resp.headers
+            resp = urllib.request.urlopen(
+                urllib.request.Request(
+                    url,
+                    data=data,
+                    headers={
+                        "Content-Type": "application/jose+json",
+                        "User-Agent": "acme-nosudo",
+                    },
+                )
+            )
+            resp_data, code, headers = (
+                resp.read().decode("utf8"),
+                resp.getcode(),
+                resp.headers,
+            )
         except IOError as e:
             resp_data = e.read().decode("utf8") if hasattr(e, "read") else str(e)
             code, headers = getattr(e, "code", None), {}
         try:
-            resp_data = json.loads(resp_data) # try to parse json results
+            resp_data = json.loads(resp_data)  # try to parse json results
         except ValueError:
-            pass # ignore json parsing errors
-        if depth < 100 and code == 400 and resp_data['type'] == "urn:ietf:params:acme:error:badNonce":
-            raise IndexError(resp_data) # allow 100 retrys for bad nonces
+            pass  # ignore json parsing errors
+        if (
+            depth < 100
+            and code == 400
+            and resp_data["type"] == "urn:ietf:params:acme:error:badNonce"
+        ):
+            raise IndexError(resp_data)  # allow 100 retrys for bad nonces
         if code not in [200, 201, 204]:
-            raise ValueError("{0}:\nUrl: {1}\nData: {2}\nResponse Code: {3}\nResponse: {4}".format(err_msg, url, data, code, resp_data))
+            raise ValueError(
+                "{0}:\nUrl: {1}\nData: {2}\nResponse Code: {3}\nResponse: {4}".format(
+                    err_msg, url, data, code, resp_data
+                )
+            )
         return resp_data, code, headers
 
     # helper function - make signed requests
     def _send_signed_request(url, payload, err_msg, depth=0):
-        payload64 = "" if payload is None else _b64(json.dumps(payload).encode('utf8'))
-        new_nonce = _do_request(DIRECTORY['newNonce'])[2]['Replay-Nonce']
+        payload64 = "" if payload is None else _b64(json.dumps(payload).encode("utf8"))
+        new_nonce = _do_request(DIRECTORY["newNonce"])[2]["Replay-Nonce"]
         protected = {"url": url, "alg": "RS256", "nonce": new_nonce}
-        protected.update({"jwk": jwk} if acct_headers is None else {"kid": acct_headers['Location']})
-        protected64 = _b64(json.dumps(protected).encode('utf8'))
-        protected_input = "{0}.{1}".format(protected64, payload64).encode('utf8')
-        out = _cmd(["openssl", "dgst", "-sha256", "-sign", account_key], stdin=subprocess.PIPE, cmd_input=protected_input, err_msg="OpenSSL Error")
-        data = json.dumps({"protected": protected64, "payload": payload64, "signature": _b64(out)})
+        protected.update(
+            {"jwk": jwk} if acct_headers is None else {"kid": acct_headers["Location"]}
+        )
+        protected64 = _b64(json.dumps(protected).encode("utf8"))
+        protected_input = "{0}.{1}".format(protected64, payload64).encode("utf8")
+        out = _cmd(
+            ["openssl", "dgst", "-sha256", "-sign", account_key],
+            stdin=subprocess.PIPE,
+            cmd_input=protected_input,
+            err_msg="OpenSSL Error",
+        )
+        data = json.dumps(
+            {"protected": protected64, "payload": payload64, "signature": _b64(out)}
+        )
         try:
-            return _do_request(url, data=data.encode('utf8'), err_msg=err_msg, depth=depth)
-        except IndexError: # retry bad nonces (they raise IndexError)
+            return _do_request(
+                url, data=data.encode("utf8"), err_msg=err_msg, depth=depth
+            )
+        except IndexError:  # retry bad nonces (they raise IndexError)
             return _send_signed_request(url, payload, err_msg, depth=(depth + 1))
 
     # helper function - poll until complete
     def _poll_until_not(url, pending_statuses, err_msg):
         result, t0 = None, time.time()
-        while result is None or result['status'] in pending_statuses:
-            assert (time.time() - t0 < 3600), "Polling timeout" # 1 hour timeout
+        while result is None or result["status"] in pending_statuses:
+            assert time.time() - t0 < 3600, "Polling timeout"  # 1 hour timeout
             time.sleep(0 if result is None else 2)
             result, _, _ = _send_signed_request(url, None, err_msg)
         return result
 
-
     # Step 1: Get account public key
     sys.stderr.write("Reading pubkey file...\n")
-    out = _cmd(["openssl", "rsa", "-in", account_key, "-noout", "-text"], err_msg="Error reading account public key")
+    out = _cmd(
+        ["openssl", "rsa", "-in", account_key, "-noout", "-text"],
+        err_msg="Error reading account public key",
+    )
     pub_hex, pub_exp = re.search(
         r"modulus:[\s]+?00:([a-f0-9\:\s]+?)\npublicExponent: ([0-9]+)",
-        out.decode('utf8'), re.MULTILINE|re.DOTALL).groups()
+        out.decode("utf8"),
+        re.MULTILINE | re.DOTALL,
+    ).groups()
     pub_mod = binascii.unhexlify(re.sub("(\s|:)", "", pub_hex))
     pub_mod64 = _b64(pub_mod)
     pub_exp = int(pub_exp)
@@ -109,15 +146,18 @@ def sign_csr(account_key, csr, email=None):
         "kty": "RSA",
         "n": pub_mod64,
     }
-    accountkey_json = json.dumps(jwk, sort_keys=True, separators=(',', ':'))
+    accountkey_json = json.dumps(jwk, sort_keys=True, separators=(",", ":"))
     thumbprint = _b64(hashlib.sha256(accountkey_json.encode()).digest())
     sys.stderr.write("Found public key!\n")
 
     # Step 2: Get the domain names to be certified
     sys.stderr.write("Reading csr file...\n")
-    out = _cmd(["openssl", "req", "-in", csr, "-noout", "-text"], err_msg="Error loading {}".format(csr))
+    out = _cmd(
+        ["openssl", "req", "-in", csr, "-noout", "-text"],
+        err_msg="Error loading {}".format(csr),
+    )
     domain = None
-    common_name = re.search("Subject:.*? CN *= *([^\s,;/]+)", out.decode('utf8'))
+    common_name = re.search("Subject:.*? CN *= *([^\s,;/]+)", out.decode("utf8"))
     if common_name is not None:
         domain = common_name.group(1)
     sys.stderr.write("Found domain {0}\n".format(domain))
@@ -127,54 +167,56 @@ def sign_csr(account_key, csr, email=None):
         default_email = "webmaster@{0}".format(domain)
         stdout = sys.stdout
         sys.stdout = sys.stderr
-        input_email = input("STEP 1: What is your contact email? ({0}) ".format(default_email))
+        input_email = input(
+            "STEP 1: What is your contact email? ({0}) ".format(default_email)
+        )
         email = input_email if input_email else default_email
         sys.stdout = stdout
 
-
     # Step 4: Generate the payload for registering user and initiate registration.
     sys.stderr.write("Registering {0}...\n".format(email))
-    reg = {
-        "termsOfServiceAgreed": True
-    }
+    reg = {"termsOfServiceAgreed": True}
     acct_headers = None
-    result, code, acct_headers = _send_signed_request(DIRECTORY['newAccount'], reg, "Error registering")
+    result, code, acct_headers = _send_signed_request(
+        DIRECTORY["newAccount"], reg, "Error registering"
+    )
     if code == 201:
         sys.stderr.write("Registered!\n")
     else:
         sys.stderr.write("Already registered!\n")
 
-
     # Step 5: Request challenges for domain
     sys.stderr.write("Making new order for {0}...\n".format(domain))
     id = {
-        "identifiers": [{
-            "type": "dns",
-            "value": domain,
-        }],
+        "identifiers": [{"type": "dns", "value": domain,}],
     }
-    order, order_code, order_headers = _send_signed_request(DIRECTORY['newOrder'], id, "Error creating new order")
+    order, order_code, order_headers = _send_signed_request(
+        DIRECTORY["newOrder"], id, "Error creating new order"
+    )
 
     # Request challenges
     sys.stderr.write("Requesting challenges...\n")
-    chl_result, chl_code, chl_headers = _send_signed_request(order['authorizations'][0], None, "Error getting challenges")
+    chl_result, chl_code, chl_headers = _send_signed_request(
+        order["authorizations"][0], None, "Error getting challenges"
+    )
 
-    challenge = [c for c in chl_result['challenges'] if c['type'] == "http-01"][0]
-    token = re.sub(r"[^A-Za-z0-9_\-]", "_", challenge['token'])
-    keyauthorization = "{0}.{1}".format(challenge['token'], thumbprint)
+    challenge = [c for c in chl_result["challenges"] if c["type"] == "http-01"][0]
+    token = re.sub(r"[^A-Za-z0-9_\-]", "_", challenge["token"])
+    keyauthorization = "{0}.{1}".format(challenge["token"], thumbprint)
 
     # build request for the server to test this challenge.
-    test_url = challenge['url']
+    test_url = challenge["url"]
     test_raw = "{}"
 
     # challenge response for server
     response = {
-        "uri": ".well-known/acme-challenge/{0}".format(challenge['token']),
+        "uri": ".well-known/acme-challenge/{0}".format(challenge["token"]),
         "data": keyauthorization,
     }
 
     # Step 6: Ask the user to host the token on their server
-    sys.stderr.write("""\
+    sys.stderr.write(
+        """\
 Please update your server to serve the following file at this URL:
 
 --------------
@@ -186,7 +228,10 @@ Notes:
 - Do not include the quotes in the file.
 - The file should be one line without any spaces.
 
-""".format(domain, response['uri'], response['data']))
+""".format(
+            domain, response["uri"], response["data"]
+        )
+    )
 
     stdout = sys.stdout
     sys.stdout = sys.stderr
@@ -195,31 +240,51 @@ Notes:
 
     # Step 7: Let the CA know you're ready for the challenge
     sys.stderr.write("Requesting verification for {0}...\n".format(domain))
-    _send_signed_request(challenge['url'], {}, "Error requesting challenge verfication: {0}".format(domain))
-    chl_verification = _poll_until_not(challenge['url'], ["pending"], "Error checking challenge verification")
-    if chl_verification['status'] != "valid":
-        raise ValueError("Challenge did not pass for {0}: {1}".format(domain, chl_verification))
+    _send_signed_request(
+        challenge["url"],
+        {},
+        "Error requesting challenge verfication: {0}".format(domain),
+    )
+    chl_verification = _poll_until_not(
+        challenge["url"], ["pending"], "Error checking challenge verification"
+    )
+    if chl_verification["status"] != "valid":
+        raise ValueError(
+            "Challenge did not pass for {0}: {1}".format(domain, chl_verification)
+        )
     sys.stderr.write("{} verified!\n".format(domain))
 
     # Step 8: Finalize
-    csr_der = _cmd(["openssl", "req", "-in", csr, "-outform", "DER"], err_msg="DER Export Error")
-    fnlz_resp, fnlz_code, fnlz_headers = _send_signed_request(order['finalize'], {"csr": _b64(csr_der)}, "Error finalizing order")
+    csr_der = _cmd(
+        ["openssl", "req", "-in", csr, "-outform", "DER"], err_msg="DER Export Error"
+    )
+    fnlz_resp, fnlz_code, fnlz_headers = _send_signed_request(
+        order["finalize"], {"csr": _b64(csr_der)}, "Error finalizing order"
+    )
 
     # Step 9: Wait for CA to mark test as valid
     sys.stderr.write("Waiting for {0} challenge to pass...\n".format(domain))
-    order = _poll_until_not(order_headers['Location'], ["pending", "processing"], "Error checking order status")
+    order = _poll_until_not(
+        order_headers["Location"],
+        ["pending", "processing"],
+        "Error checking order status",
+    )
 
-    if order['status'] == "valid":
+    if order["status"] == "valid":
         sys.stderr.write("Passed {0} challenge!\n".format(domain))
     else:
         raise ValueError("'{0}' challenge did not pass: {1}".format(domain, order))
 
     # Step 10: Get the certificate.
     sys.stderr.write("Getting certificate...\n")
-    signed_pem, _, _ = _send_signed_request(order['certificate'], None, "Error getting certificate")
+    signed_pem, _, _ = _send_signed_request(
+        order["certificate"], None, "Error getting certificate"
+    )
 
     sys.stderr.write("Received certificate!\n")
-    sys.stderr.write("You can remove the acme-challenge file from your webserver now.\n")
+    sys.stderr.write(
+        "You can remove the acme-challenge file from your webserver now.\n"
+    )
 
     return signed_pem
 
@@ -231,9 +296,9 @@ def revoke_crt(account_key, crt):
     :param string account_key: Path to your Let's Encrypt account private key.
     :param string crt: Path to the signed certificate.
     """
-    #CA = "https://acme-staging-v02.api.letsencrypt.org"
+    # CA = "https://acme-staging-v02.api.letsencrypt.org"
     CA = "https://acme-v02.api.letsencrypt.org"
-    DIRECTORY = json.loads(urlopen(CA + "/directory").read().decode('utf8'))
+    DIRECTORY = json.loads(urlopen(CA + "/directory").read().decode("utf8"))
 
     def _b64(b):
         "Shortcut function to go from bytes to jwt base64 string"
@@ -248,7 +313,9 @@ def revoke_crt(account_key, crt):
 
     # helper function - run external commands
     def _cmd(cmd_list, stdin=None, cmd_input=None, err_msg="Command Line Error"):
-        proc = subprocess.Popen(cmd_list, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+            cmd_list, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         out, err = proc.communicate(cmd_input)
         if proc.returncode != 0:
             raise IOError("{0}\n{1}".format(err_msg, err))
@@ -257,43 +324,80 @@ def revoke_crt(account_key, crt):
     # helper function - make request and automatically parse json response
     def _do_request(url, data=None, err_msg="Error", depth=0):
         try:
-            resp = urllib.request.urlopen(urllib.request.Request(url, data=data, headers={"Content-Type": "application/jose+json", "User-Agent": "acme-nosudo"}))
-            resp_data, code, headers = resp.read().decode("utf8"), resp.getcode(), resp.headers
+            resp = urllib.request.urlopen(
+                urllib.request.Request(
+                    url,
+                    data=data,
+                    headers={
+                        "Content-Type": "application/jose+json",
+                        "User-Agent": "acme-nosudo",
+                    },
+                )
+            )
+            resp_data, code, headers = (
+                resp.read().decode("utf8"),
+                resp.getcode(),
+                resp.headers,
+            )
         except IOError as e:
             resp_data = e.read().decode("utf8") if hasattr(e, "read") else str(e)
             code, headers = getattr(e, "code", None), {}
         try:
-            resp_data = json.loads(resp_data) # try to parse json results
+            resp_data = json.loads(resp_data)  # try to parse json results
         except ValueError:
-            pass # ignore json parsing errors
-        if depth < 100 and code == 400 and resp_data['type'] == "urn:ietf:params:acme:error:badNonce":
-            raise IndexError(resp_data) # allow 100 retrys for bad nonces
+            pass  # ignore json parsing errors
+        if (
+            depth < 100
+            and code == 400
+            and resp_data["type"] == "urn:ietf:params:acme:error:badNonce"
+        ):
+            raise IndexError(resp_data)  # allow 100 retrys for bad nonces
         if code not in [200, 201, 204]:
-            raise ValueError("{0}:\nUrl: {1}\nData: {2}\nResponse Code: {3}\nResponse: {4}".format(err_msg, url, data, code, resp_data))
+            raise ValueError(
+                "{0}:\nUrl: {1}\nData: {2}\nResponse Code: {3}\nResponse: {4}".format(
+                    err_msg, url, data, code, resp_data
+                )
+            )
         return resp_data, code, headers
 
     # helper function - make signed requests
     def _send_signed_request(url, payload, err_msg, depth=0):
-        payload64 = "" if payload is None else _b64(json.dumps(payload).encode('utf8'))
-        new_nonce = _do_request(DIRECTORY['newNonce'])[2]['Replay-Nonce']
+        payload64 = "" if payload is None else _b64(json.dumps(payload).encode("utf8"))
+        new_nonce = _do_request(DIRECTORY["newNonce"])[2]["Replay-Nonce"]
         protected = {"url": url, "alg": "RS256", "nonce": new_nonce}
-        protected.update({"jwk": jwk} if acct_headers is None else {"kid": acct_headers['Location']})
-        protected64 = _b64(json.dumps(protected).encode('utf8'))
-        protected_input = "{0}.{1}".format(protected64, payload64).encode('utf8')
-        out = _cmd(["openssl", "dgst", "-sha256", "-sign", account_key], stdin=subprocess.PIPE, cmd_input=protected_input, err_msg="OpenSSL Error")
-        data = json.dumps({"protected": protected64, "payload": payload64, "signature": _b64(out)})
+        protected.update(
+            {"jwk": jwk} if acct_headers is None else {"kid": acct_headers["Location"]}
+        )
+        protected64 = _b64(json.dumps(protected).encode("utf8"))
+        protected_input = "{0}.{1}".format(protected64, payload64).encode("utf8")
+        out = _cmd(
+            ["openssl", "dgst", "-sha256", "-sign", account_key],
+            stdin=subprocess.PIPE,
+            cmd_input=protected_input,
+            err_msg="OpenSSL Error",
+        )
+        data = json.dumps(
+            {"protected": protected64, "payload": payload64, "signature": _b64(out)}
+        )
         try:
-            return _do_request(url, data=data.encode('utf8'), err_msg=err_msg, depth=depth)
-        except IndexError: # retry bad nonces (they raise IndexError)
+            return _do_request(
+                url, data=data.encode("utf8"), err_msg=err_msg, depth=depth
+            )
+        except IndexError:  # retry bad nonces (they raise IndexError)
             return _send_signed_request(url, payload, err_msg, depth=(depth + 1))
 
     # Step 1: Get account public key
     sys.stderr.write("Reading pubkey file...\n")
-    out = _cmd(["openssl", "rsa", "-in", account_key, "-noout", "-text"], err_msg="Error reading account public key")
+    out = _cmd(
+        ["openssl", "rsa", "-in", account_key, "-noout", "-text"],
+        err_msg="Error reading account public key",
+    )
 
     pub_hex, pub_exp = re.search(
         r"modulus:[\s]+?00:([a-f0-9\:\s]+?)\npublicExponent: ([0-9]+)",
-        out.decode('utf8'), re.MULTILINE|re.DOTALL).groups()
+        out.decode("utf8"),
+        re.MULTILINE | re.DOTALL,
+    ).groups()
     pub_mod = binascii.unhexlify(re.sub("(\s|:)", "", pub_hex))
     pub_mod64 = _b64(pub_mod)
     pub_exp = int(pub_exp)
@@ -310,19 +414,23 @@ def revoke_crt(account_key, crt):
 
     # Step 2: Get account info.
     sys.stderr.write("Getting account info...\n")
-    reg = {
-        "onlyReturnExistiing": True
-    }
+    reg = {"onlyReturnExistiing": True}
     acct_headers = None
-    result, code, acct_headers = _send_signed_request(DIRECTORY['newAccount'], reg, "Error getting account info")
+    result, code, acct_headers = _send_signed_request(
+        DIRECTORY["newAccount"], reg, "Error getting account info"
+    )
 
     # Step 3: Generate the payload.
-    crt_der = _cmd(["openssl", "x509", "-in", crt, "-outform", "DER"], err_msg="DER export error")
+    crt_der = _cmd(
+        ["openssl", "x509", "-in", crt, "-outform", "DER"], err_msg="DER export error"
+    )
     crt_der64 = _b64(crt_der)
     rvk_payload = {
         "certificate": crt_der64,
     }
-    _send_signed_request(DIRECTORY['revokeCert'], rvk_payload, "Error revoking certificate")
+    _send_signed_request(
+        DIRECTORY["revokeCert"], rvk_payload, "Error revoking certificate"
+    )
     sys.stderr.write("Certificate revoked!\n")
 
 
@@ -358,19 +466,32 @@ Example: Revoking a signed certificate:
 --------------
 $ acmens --revoke --account-key user.key --crt domain.crt
 --------------
-""");
-    parser.add_argument("--revoke", action="store_true", help="Revoke a signed certificate")
-    parser.add_argument("-k", "--account-key", required=True, help="path to your Let's Encrypt account private key")
-    parser.add_argument("-e", "--email", default=None, help="contact email, default is webmaster@<shortest_domain>")
+""",
+    )
+    parser.add_argument(
+        "--revoke", action="store_true", help="Revoke a signed certificate"
+    )
+    parser.add_argument(
+        "-k",
+        "--account-key",
+        required=True,
+        help="path to your Let's Encrypt account private key",
+    )
+    parser.add_argument(
+        "-e",
+        "--email",
+        default=None,
+        help="contact email, default is webmaster@<shortest_domain>",
+    )
     parser.add_argument("--csr", help="path to your certificate signing request")
     parser.add_argument("--crt", help="path to your signed certificate")
 
     args = parser.parse_args()
     if (not args.revoke) and (args.csr is None):
-        sys.stderr.write('Error: Path to CSR required\n')
+        sys.stderr.write("Error: Path to CSR required\n")
         sys.exit(1)
     if args.revoke and args.crt is None:
-        sys.stderr.write('Error: Path to signed cert required\n')
+        sys.stderr.write("Error: Path to signed cert required\n")
         sys.exit(1)
 
     if args.revoke:
