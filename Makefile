@@ -5,7 +5,7 @@
 #
 
 fmt:
-	black acmens.py
+	black acmens.py setup.py
 .PHONY: fmt
 
 develop:
