@@ -4,6 +4,10 @@
 # Copyright © 2020 rsiddharth <s@ricketyspace.net>
 #
 
+fmt:
+	black acmens.py
+.PHONY: fmt
+
 develop:
 	@python3 setup.py develop
 .PHONY: develop
