@@ -15,7 +15,7 @@ from urllib.error import HTTPError
 __version__ = "0.1.3.dev1"
 
 
-def sign_csr(account_key, csr, email=None):
+def sign_csr(account_key, csr, email=None, challenge_type='http'):
     """Use the ACME protocol to get an ssl certificate signed by a
     certificate authority.
 
@@ -23,6 +23,8 @@ def sign_csr(account_key, csr, email=None):
     :param string csr: Path to the certificate signing request.
     :param string email: An optional user account contact email
                          (defaults to webmaster@<shortest_domain>)
+    :param string challenge_type: The challenge type to use.
+                         (defaults to http)
 
     :returns: Signed Certificate (PEM format)
     :rtype: string
@@ -200,7 +202,8 @@ def sign_csr(account_key, csr, email=None):
         order["authorizations"][0], None, "Error getting challenges"
     )
 
-    challenge = [c for c in chl_result["challenges"] if c["type"] == "http-01"][0]
+    type_id = 'dns-01' if challenge_type == 'dns' else 'http-01'
+    challenge = [c for c in chl_result["challenges"] if c["type"] == type_id][0]
     token = re.sub(r"[^A-Za-z0-9_\-]", "_", challenge["token"])
     keyauthorization = "{0}.{1}".format(challenge["token"], thumbprint)
 
@@ -208,34 +211,47 @@ def sign_csr(account_key, csr, email=None):
     test_url = challenge["url"]
     test_raw = "{}"
 
-    # challenge response for server
-    response = {
-        "uri": ".well-known/acme-challenge/{0}".format(challenge["token"]),
-        "data": keyauthorization,
-    }
-
     # Step 6: Ask the user to host the token on their server
-    sys.stderr.write(
+    if challenge_type == 'dns':
+        sys.stderr.write(
+        """\
+Please update your DNS to have the following TXT record:
+
+--------------
+DNS TXT record: _acme-challenge.{domain}
+DNS TXT record contents: \"{token}\"
+--------------
+
+Notes:
+- Do not include the quotes in the TXT record.
+
+""".format(domain=domain, token=challenge["token"]))
+    else:
+        # Challenge response for http server.
+        response_uri = ".well-known/acme-challenge/{0}".format(
+            challenge["token"])
+
+        sys.stderr.write(
         """\
 Please update your server to serve the following file at this URL:
 
 --------------
-URL: http://{0}/{1}
-File contents: \"{2}\"
+URL: http://{domain}/{uri}
+File contents: \"{token}\"
 --------------
 
 Notes:
 - Do not include the quotes in the file.
 - The file should be one line without any spaces.
 
-""".format(
-            domain, response["uri"], response["data"]
-        )
-    )
+""".format(domain=domain, uri=response_uri, token=keyauthorization))
 
     stdout = sys.stdout
     sys.stdout = sys.stderr
-    input("Press Enter when you've got the file hosted on your server...")
+    if challenge_type == 'dns':
+        input("Press Enter when the TXT record is updated on the DNS...")
+    else:
+        input("Press Enter when you've got the file hosted on your server...")
     sys.stdout = stdout
 
     # Step 7: Let the CA know you're ready for the challenge
@@ -483,6 +499,12 @@ $ acmens --revoke --account-key user.key --crt domain.crt
         default=None,
         help="contact email, default is webmaster@<shortest_domain>",
     )
+    parser.add_argument(
+        "-c",
+        "--challenge",
+        default='http',
+        help="Challenge type (http or dns), default is http",
+    )
     parser.add_argument("--csr", help="path to your certificate signing request")
     parser.add_argument("--crt", help="path to your signed certificate")
 
@@ -497,7 +519,9 @@ $ acmens --revoke --account-key user.key --crt domain.crt
     if args.revoke:
         revoke_crt(args.account_key, args.crt)
     else:
-        signed_crt = sign_csr(args.account_key, args.csr, email=args.email)
+        signed_crt = sign_csr(
+            args.account_key, args.csr, email=args.email,
+            challenge_type=args.challenge)
         sys.stdout.write(signed_crt)
 
 
