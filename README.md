@@ -67,6 +67,16 @@ When you run the script, it will:
  - Will write the certificate to `signed.crt` if ACME HTTP challenge is
    successful.
 
+## dns challenge
+
+If you want to use the DNS challenge type provide it using the `--challenge` flag.
+
+```sh
+acmens --account-key user.key --email mail@example.com --challenge=dns --csr domain.csr > signed.crt
+```
+
+This will prompt you to update the DNS records to add a TXT record.
+
 ## revoking a certificate
 
 First, you will need to the user account key for Let's Encrypt that was used
