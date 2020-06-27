@@ -225,7 +225,7 @@ DNS TXT record contents: \"{token}\"
 Notes:
 - Do not include the quotes in the TXT record.
 
-""".format(domain=domain, token=challenge["token"]))
+""".format(domain=domain.replace('*.', ''), token=challenge["token"]))
     else:
         # Challenge response for http server.
         response_uri = ".well-known/acme-challenge/{0}".format(
