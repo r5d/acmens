@@ -216,17 +216,16 @@ def sign_csr(account_key, csr, email=None, challenge_type='http'):
     if challenge_type == 'dns':
         sys.stderr.write(
         """\
-Please update your DNS to have the following TXT record:
+Please update your DNS for {domain} to have the following TXT record:
 
 --------------
-DNS TXT record: _acme-challenge.{domain}
-DNS TXT record contents: \"{token}\"
+_acme-challenge    IN    TXT ( \"{keyauth}\" )
 --------------
 
 Notes:
 - Do not include the quotes in the TXT record.
 
-""".format(domain=domain.replace('*.', ''), token=dns_payload))
+""".format(domain=domain.replace('*.', ''), keyauth=dns_payload))
     else:
         # Challenge response for http server.
         response_uri = ".well-known/acme-challenge/{0}".format(
