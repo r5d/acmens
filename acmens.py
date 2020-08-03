@@ -206,6 +206,7 @@ def sign_csr(account_key, csr, email=None, challenge_type='http'):
     challenge = [c for c in chl_result["challenges"] if c["type"] == type_id][0]
     token = re.sub(r"[^A-Za-z0-9_\-]", "_", challenge["token"])
     keyauthorization = "{0}.{1}".format(challenge["token"], thumbprint)
+    dns_payload = _b64(hashlib.sha256(keyauthorization.encode()).digest())
 
     # build request for the server to test this challenge.
     test_url = challenge["url"]
@@ -225,7 +226,7 @@ DNS TXT record contents: \"{token}\"
 Notes:
 - Do not include the quotes in the TXT record.
 
-""".format(domain=domain.replace('*.', ''), token=challenge["token"]))
+""".format(domain=domain.replace('*.', ''), token=dns_payload))
     else:
         # Challenge response for http server.
         response_uri = ".well-known/acme-challenge/{0}".format(
