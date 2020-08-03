@@ -222,9 +222,6 @@ Please update your DNS for {domain} to have the following TXT record:
 _acme-challenge    IN    TXT ( \"{keyauth}\" )
 --------------
 
-Notes:
-- Do not include the quotes in the TXT record.
-
 """.format(domain=domain.replace('*.', ''), keyauth=dns_payload))
     else:
         # Challenge response for http server.
