@@ -72,7 +72,7 @@ When you run the script, it will:
 If you want to use the DNS challenge type provide it using the `--challenge` flag.
 
 ```sh
-acmens --account-key user.key --email mail@example.com --challenge=dns --csr domain.csr > signed.crt
+acmens --account-key user.key --email mail@example.com --challenge dns --csr domain.csr > signed.crt
 ```
 
 This will prompt you to update the DNS records to add a TXT record.
