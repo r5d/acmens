@@ -60,7 +60,7 @@ def sign_csr(account_key, csr, email=None, challenge_type="http"):
                     data=data,
                     headers={
                         "Content-Type": "application/jose+json",
-                        "User-Agent": "acme-nosudo",
+                        "User-Agent": "acmens",
                     },
                 )
             )
