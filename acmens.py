@@ -134,8 +134,20 @@ def sign_csr(account_key, csr, email=None, challenge_type="http"):
         )
         domain = chl_result["identifier"]["value"]
 
-        type_id = "dns-01" if challenge_type == "dns" else "http-01"
-        challenge = [c for c in chl_result["challenges"] if c["type"] == type_id][0]
+        # Choose challenge.
+        preferred_type = "dns-01" if challenge_type == "dns" else "http-01"
+        challenge = None
+        http_challenge = None
+        for c in chl_result["challenges"]:
+            if c["type"] == preferred_type:
+                challenge = c
+            if c["type"] == "http-01":
+                http_challenge = c
+        if challenge is None:
+            if http_challenge is None:
+                sys.stderr.write("Error: Unable to find challenges!")
+                sys.exit(1)
+            challenge = http_challenge  # Fallback to http challenge.
         keyauthorization = "{0}.{1}".format(challenge["token"], thumbprint)
         dns_payload = _b64(hashlib.sha256(keyauthorization.encode()).digest())
 
