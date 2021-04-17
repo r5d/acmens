@@ -22,7 +22,7 @@ config = {
     "long_description": long_description,
     "long_description_content_type": "text/markdown",
     "url": "https://github.com/r5d/acmens",
-    "author": "rsiddharth",
+    "author": "siddharth",
     "author_email": "s@ricketyspace.net",
     "license": "GNU Affero General Public License v3",
     "classifiers": [
