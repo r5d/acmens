@@ -39,11 +39,14 @@ This is the key that you will get signed for free for your domain (replace
 and CSR for your domain, you can skip this step.
 
 ```sh
-# Generate domain key.
+# Generate domain key
 openssl genrsa -aes256 -out domain.key 4096
 
 # Generate CSR
 openssl req -new -sha256 -key domain.key -out domain.csr
+
+# Or Generate CSR with multiple domains
+openssl req -new -sha256 -key domain.key -subj "/" -addext "subjectAltName = DNS:example.com, DNS:www.example.com" > domain.csr
 ```
 
 Third, you run the script using python and passing in the path to your user
