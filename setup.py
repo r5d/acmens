@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Copyright © 2020 rsiddharth <s@ricketyspace.net>
+# Copyright © 2021 siddharth <s@ricketyspace.net>
 #
 
 from setuptools import setup, find_packages
