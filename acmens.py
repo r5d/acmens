@@ -374,7 +374,7 @@ def revoke_crt(account_key, crt):
                     data=data,
                     headers={
                         "Content-Type": "application/jose+json",
-                        "User-Agent": "acme-nosudo",
+                        "User-Agent": "acmens",
                     },
                 )
             )
