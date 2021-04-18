@@ -14,11 +14,14 @@ from urllib.error import HTTPError
 
 __version__ = "0.1.4"
 
+CA_PRD = "https://acme-v02.api.letsencrypt.org"
+CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
 
-def sign_csr(account_key, csr, email=None, challenge_type="http"):
+def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
     """Use the ACME protocol to get an ssl certificate signed by a
     certificate authority.
 
+    :param string ca_url: Let's Encrypt endpoint.
     :param string account_key: Path to the user account key.
     :param string csr: Path to the certificate signing request.
     :param string email: An optional user account contact email
@@ -30,9 +33,7 @@ def sign_csr(account_key, csr, email=None, challenge_type="http"):
     :rtype: string
 
     """
-    # CA = "https://acme-staging-v02.api.letsencrypt.org"
-    CA = "https://acme-v02.api.letsencrypt.org"
-    DIRECTORY = json.loads(urlopen(CA + "/directory").read().decode("utf8"))
+    DIRECTORY = json.loads(urlopen(ca_url + "/directory").read().decode("utf8"))
 
     def _b64(b):
         "Shortcut function to go from bytes to jwt base64 string"
@@ -333,16 +334,15 @@ Notes:
     return signed_pem
 
 
-def revoke_crt(account_key, crt):
+def revoke_crt(ca_url, account_key, crt):
     """Use the ACME protocol to revoke an ssl certificate signed by a
     certificate authority.
 
+    :param string ca_url: Let's Encrypt endpoint.
     :param string account_key: Path to your Let's Encrypt account private key.
     :param string crt: Path to the signed certificate.
     """
-    # CA = "https://acme-staging-v02.api.letsencrypt.org"
-    CA = "https://acme-v02.api.letsencrypt.org"
-    DIRECTORY = json.loads(urlopen(CA + "/directory").read().decode("utf8"))
+    DIRECTORY = json.loads(urlopen(ca_url + "/directory").read().decode("utf8"))
 
     def _b64(b):
         "Shortcut function to go from bytes to jwt base64 string"
@@ -516,6 +516,9 @@ $ acmens --revoke --account-key user.key --crt domain.crt
         "--revoke", action="store_true", help="Revoke a signed certificate"
     )
     parser.add_argument(
+        "--stage", action="store_true", help="Use Let's Encrypt's staging endpoint"
+    )
+    parser.add_argument(
         "-k",
         "--account-key",
         required=True,
@@ -544,11 +547,15 @@ $ acmens --revoke --account-key user.key --crt domain.crt
         sys.stderr.write("Error: Path to signed cert required\n")
         sys.exit(1)
 
+    ca_url = CA_PRD
+    if args.stage:
+        ca_url = CA_STG
+
     if args.revoke:
-        revoke_crt(args.account_key, args.crt)
+        revoke_crt(ca_url, args.account_key, args.crt)
     else:
         signed_crt = sign_csr(
-            args.account_key, args.csr, email=args.email, challenge_type=args.challenge
+            ca_url, args.account_key, args.csr, email=args.email, challenge_type=args.challenge
         )
         sys.stdout.write(signed_crt)
 
