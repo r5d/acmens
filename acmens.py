@@ -512,6 +512,7 @@ $ acmens --revoke --account-key user.key --crt domain.crt
 --------------
 """,
     )
+    parser.add_argument("--version", action="store_true", help="Show version and exit")
     parser.add_argument(
         "--revoke", action="store_true", help="Revoke a signed certificate"
     )
@@ -521,7 +522,6 @@ $ acmens --revoke --account-key user.key --crt domain.crt
     parser.add_argument(
         "-k",
         "--account-key",
-        required=True,
         help="path to your Let's Encrypt account private key",
     )
     parser.add_argument(
@@ -540,6 +540,12 @@ $ acmens --revoke --account-key user.key --crt domain.crt
     parser.add_argument("--crt", help="path to your signed certificate")
 
     args = parser.parse_args()
+    if args.version:
+        print("acmens v{}".format(__version__))
+        sys.exit(0)
+    if args.account_key is None:
+        sys.stderr.write("Error: Path account key is required\n")
+        sys.exit(1)
     if (not args.revoke) and (args.csr is None):
         sys.stderr.write("Error: Path to CSR required\n")
         sys.exit(1)
