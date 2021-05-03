@@ -12,7 +12,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = "0.1.4"
+__version__ = "0.1.4-dev"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
@@ -555,7 +555,11 @@ $ acmens --revoke --account-key user.key --crt domain.crt
         revoke_crt(ca_url, args.account_key, args.crt)
     else:
         signed_crt = sign_csr(
-            ca_url, args.account_key, args.csr, email=args.email, challenge_type=args.challenge
+            ca_url,
+            args.account_key,
+            args.csr,
+            email=args.email,
+            challenge_type=args.challenge,
         )
         sys.stdout.write(signed_crt)
 
