@@ -12,10 +12,18 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = "0.1.4-dev"
+__version__ = "0.1.4-dev0"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
+
+
+def _b64(b):
+    "Convert bytes to JWT base64 string"
+    if type(b) is str:
+        b = b.encode()
+    return base64.urlsafe_b64encode(b).decode().replace("=", "")
+
 
 def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
     """Use the ACME protocol to get an ssl certificate signed by a
@@ -34,13 +42,6 @@ def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
 
     """
     DIRECTORY = json.loads(urlopen(ca_url + "/directory").read().decode("utf8"))
-
-    def _b64(b):
-        "Shortcut function to go from bytes to jwt base64 string"
-        if type(b) is str:
-            b = b.encode()
-
-        return base64.urlsafe_b64encode(b).decode().replace("=", "")
 
     # helper function - run external commands
     def _cmd(cmd_list, stdin=None, cmd_input=None, err_msg="Command Line Error"):
@@ -343,13 +344,6 @@ def revoke_crt(ca_url, account_key, crt):
     :param string crt: Path to the signed certificate.
     """
     DIRECTORY = json.loads(urlopen(ca_url + "/directory").read().decode("utf8"))
-
-    def _b64(b):
-        "Shortcut function to go from bytes to jwt base64 string"
-        if type(b) is str:
-            b = b.encode()
-
-        return base64.urlsafe_b64encode(b).decode().replace("=", "")
 
     def _a64(a):
         "Shortcut function to go from jwt base64 string to bytes"
