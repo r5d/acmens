@@ -10,6 +10,7 @@ fmt:
 
 develop:
 	@python3 setup.py develop
+	@pip install -U pip black twine
 .PHONY: develop
 
 build:
