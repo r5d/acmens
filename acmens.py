@@ -108,6 +108,18 @@ def _send_signed_request(url, payload, nonce_url, auth, account_key, err_msg, de
         )
 
 
+def _poll_until_not(url, pending_statuses, nonce_url, auth, account_key, err_msg):
+    """Poll until status is not in pending_statuses"""
+    result, t0 = None, time.time()
+    while result is None or result["status"] in pending_statuses:
+        assert time.time() - t0 < 3600, "Polling timeout"  # 1 hour timeout
+        time.sleep(0 if result is None else 2)
+        result, _, _ = _send_signed_request(
+            url, None, nonce_url, auth, account_key, err_msg
+        )
+    return result
+
+
 def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
     """Use the ACME protocol to get an ssl certificate signed by a
     certificate authority.
@@ -124,17 +136,6 @@ def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
     :rtype: string
 
     """
-
-    # helper function - poll until complete
-    def _poll_until_not(url, pending_statuses, nonce_url, auth, account_key, err_msg):
-        result, t0 = None, time.time()
-        while result is None or result["status"] in pending_statuses:
-            assert time.time() - t0 < 3600, "Polling timeout"  # 1 hour timeout
-            time.sleep(0 if result is None else 2)
-            result, _, _ = _send_signed_request(
-                url, None, nonce_url, auth, account_key, err_msg
-            )
-        return result
 
     # helper function - do challenge
     def _do_challenge(authz_url, nonce_url, auth, account_key, thumbprint):
