@@ -25,6 +25,17 @@ def _b64(b):
     return base64.urlsafe_b64encode(b).decode().replace("=", "")
 
 
+def _cmd(cmd_list, stdin=None, cmd_input=None, err_msg="Command Line Error"):
+    "Runs external commands"
+    proc = subprocess.Popen(
+        cmd_list, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    out, err = proc.communicate(cmd_input)
+    if proc.returncode != 0:
+        raise IOError("{0}\n{1}".format(err_msg, err))
+    return out
+
+
 def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
     """Use the ACME protocol to get an ssl certificate signed by a
     certificate authority.
@@ -42,16 +53,6 @@ def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
 
     """
     DIRECTORY = json.loads(urlopen(ca_url + "/directory").read().decode("utf8"))
-
-    # helper function - run external commands
-    def _cmd(cmd_list, stdin=None, cmd_input=None, err_msg="Command Line Error"):
-        proc = subprocess.Popen(
-            cmd_list, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        out, err = proc.communicate(cmd_input)
-        if proc.returncode != 0:
-            raise IOError("{0}\n{1}".format(err_msg, err))
-        return out
 
     # helper function - make request and automatically parse json response
     def _do_request(url, data=None, err_msg="Error", depth=0):
@@ -348,16 +349,6 @@ def revoke_crt(ca_url, account_key, crt):
     def _a64(a):
         "Shortcut function to go from jwt base64 string to bytes"
         return base64.urlsafe_b64decode(str(a + ("=" * (len(a) % 4))))
-
-    # helper function - run external commands
-    def _cmd(cmd_list, stdin=None, cmd_input=None, err_msg="Command Line Error"):
-        proc = subprocess.Popen(
-            cmd_list, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        out, err = proc.communicate(cmd_input)
-        if proc.returncode != 0:
-            raise IOError("{0}\n{1}".format(err_msg, err))
-        return out
 
     # helper function - make request and automatically parse json response
     def _do_request(url, data=None, err_msg="Error", depth=0):
