@@ -25,7 +25,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = "0.1.5-dev1"
+__version__ = "0.1.5-dev2"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
@@ -234,7 +234,7 @@ def _agree_to(terms):
     ans = input(
         "\nDo you agree to the Let's Encrypt Subscriber Agreement\n({})? ".format(terms)
     )
-    if re.search(r"[Yy]", ans) is None:
+    if re.search(r"^[Yy]", ans) is None:
         sys.stderr.write("Error: Cannot continue. Exiting.\n")
         sys.exit(1)
 
