@@ -12,7 +12,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = "0.1.4-dev0"
+__version__ = "0.1.4-dev1"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
@@ -215,6 +215,19 @@ Notes:
     sys.stderr.write("{} verified!\n".format(domain))
 
 
+def _agree_to(terms):
+    """Asks user whether they agree to the Let's Encrypt Subscriber
+    Agreement. It will immediately exit if user does not agree."""
+    ans = input(
+        "\nDo you agree to the Let's Encrypt Subscriber Agreement\n({})? ".format(
+            terms
+        )
+    )
+    if re.search(r"[Yy]", ans) is None:
+        sys.stderr.write("Error: Cannot continue. Exiting.\n")
+        sys.exit(1)
+
+
 def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
     """Use the ACME protocol to get an ssl certificate signed by a
     certificate authority.
@@ -298,6 +311,7 @@ def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
 
     # Step 4: Generate the payload for registering user and initiate registration.
     sys.stderr.write("Registering {0}...\n".format(email))
+    _agree_to(_directory(ca_url)["meta"]["termsOfService"])
     reg = {"termsOfServiceAgreed": True}
     nonce_url = _directory(ca_url)["newNonce"]
     auth = {"jwk": jwk}
