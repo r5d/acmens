@@ -231,9 +231,10 @@ Notes:
 def _agree_to(terms):
     """Asks user whether they agree to the Let's Encrypt Subscriber
     Agreement. It will immediately exit if user does not agree."""
-    ans = input(
+    sys.stderr.write(
         "\nDo you agree to the Let's Encrypt Subscriber Agreement\n({})? ".format(terms)
     )
+    ans = input()
     if re.search(r"^[Yy]", ans) is None:
         sys.stderr.write("Error: Cannot continue. Exiting.\n")
         sys.exit(1)
