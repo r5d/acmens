@@ -25,7 +25,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = "0.1.5-dev2"
+__version__ = "0.1.5-dev3"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
@@ -458,7 +458,7 @@ def revoke_crt(ca_url, account_key, crt):
 
     # Step 2: Get account info.
     sys.stderr.write("Getting account info...\n")
-    reg = {"onlyReturnExistiing": True}
+    reg = {"onlyReturnExisting": True}
     nonce_url = _directory(ca_url)["newNonce"]
     auth = {"jwk": jwk}
     acct_headers = None
