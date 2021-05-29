@@ -12,7 +12,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = "0.1.4-dev1"
+__version__ = "0.1.4-dev2"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
@@ -329,6 +329,17 @@ def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
     else:
         sys.stderr.write("Already registered!\n")
     auth = {"kid": acct_headers["Location"]}
+
+    sys.stderr.write("Updating account...")
+    ua_result, ua_code, ua_headers = _send_signed_request(
+        acct_headers["Location"],
+        {"contact": ["mailto:{}".format(email)]},
+        nonce_url,
+        auth,
+        account_key,
+        "Error updating account",
+    )
+    sys.stderr.write("Done\n")
 
     # Step 5: Request challenges for domains
     sys.stderr.write("Making new order for {0}...\n".format(", ".join(domains)))
