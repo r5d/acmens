@@ -156,18 +156,17 @@ def _do_challenge(challenge_type, authz_url, nonce_url, auth, account_key, thumb
         if c["type"] == "http-01":
             http_challenge = c
     if challenge is None:
-        if http_challenge is None:
-            if dns_challenge is None:
-                sys.stderr.write("Error: Unable to find challenges!")
-                sys.exit(1)
-            else:
-                # Fallback to dns challenge.
-                challenge = dns_challenge
-                challenge_type = "dns"
-        else:
+        if http_challenge:
             # Fallback to http challenge.
             challenge = http_challenge
             challenge_type = "http"
+        elif dns_challenge:
+            # Fallback to dns challenge.
+            challenge = dns_challenge
+            challenge_type = "dns"
+        else:
+            sys.stderr.write("Error: Unable to find challenges!")
+            sys.exit(1)
     keyauthorization = "{0}.{1}".format(challenge["token"], thumbprint)
     dns_payload = _b64(hashlib.sha256(keyauthorization.encode()).digest())
 
