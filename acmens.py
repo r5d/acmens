@@ -25,7 +25,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = "0.1.5"
+__version__ = "0.1.6-dev0"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
@@ -183,10 +183,10 @@ _acme-challenge    IN    TXT ( \"{keyauth}\" )
                 domain=domain, keyauth=dns_payload
             )
         )
+        final_msg = "You can remove the _acme-challenge DNS TXT record now."
     else:
         # Challenge response for http server.
         response_uri = ".well-known/acme-challenge/{0}".format(challenge["token"])
-
         sys.stderr.write(
             """\
 Please update your server to serve the following file at this URL:
@@ -204,6 +204,7 @@ Notes:
                 domain=domain, uri=response_uri, token=keyauthorization
             )
         )
+        final_msg = "You can remove the acme-challenge file from your webserver now."
 
     stdout = sys.stdout
     sys.stdout = sys.stderr
@@ -236,6 +237,7 @@ Notes:
             "Challenge did not pass for {0}: {1}".format(domain, chl_verification)
         )
     sys.stderr.write("{} verified!\n".format(domain))
+    sys.stderr.write("{}\n".format(final_msg))
 
 
 def _agree_to(terms):
@@ -420,9 +422,6 @@ def sign_csr(ca_url, account_key, csr, email=None, challenge_type="http"):
     )
 
     sys.stderr.write("Received certificate!\n")
-    sys.stderr.write(
-        "You can remove the acme-challenge file from your webserver now.\n"
-    )
 
     return signed_pem
 
