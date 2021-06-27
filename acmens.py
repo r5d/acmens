@@ -503,36 +503,10 @@ def revoke_crt(ca_url, account_key, crt):
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="""\
-Get a SSL certificate signed by a Let's Encrypt (ACME) certificate
-authority and output that signed certificate. You do NOT need to run
-this script on your server, it is meant to be run on your
-computer. The script will request you to manually deploy the acme
-challenge on your server.
+        description="""acmens may be used for getting a new SSL certificate, renewing a
+SSL certificate for a domain, and revoking a certificate for a domain.
 
-You may also revoke a signed Let's Encrypt (ACME) certificate.
-
-
-NOTE: YOUR ACCOUNT KEY NEEDS TO BE DIFFERENT FROM YOUR DOMAIN KEY.
-
-Prerequisites:
-* openssl
-* python version 3
-
-Example: Generate an account keypair, a domain key and csr, and have the domain csr signed.
---------------
-$ openssl genrsa -aes256 4096 > user.key
-$ openssl rsa -in user.key -pubout > user.pub
-$ openssl genrsa -aes256 4096 > domain.key
-$ openssl req -new -sha256 -key domain.key -subj "/CN=example.com" > domain.csr
-$ acmens --account-key user.key --email user@example.com --csr domain.csr > signed.crt
---------------
-
-Example: Revoking a signed certificate:
---------------
-$ acmens --revoke --account-key user.key --crt domain.crt
---------------
-""",
+It's meant to be run locally from your computer.""",
     )
     parser.add_argument("--version", action="store_true", help="Show version and exit")
     parser.add_argument(
