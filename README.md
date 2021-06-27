@@ -37,9 +37,6 @@ make venv
 make develop
 # note that any changes you make to acmens.py will be instantly reflected
 # in the acmens in your PATH.
-
-# de-activate the virtual environment:
-deactivate
 ```
 
 ## getting/renewing a certificate
