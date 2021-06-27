@@ -3,10 +3,16 @@
 #
 # Copyright © 2020 rsiddharth <s@ricketyspace.net>
 #
+VENV_DIR=.venv
+VENV=virtualenv
 
 fmt:
 	black acmens.py setup.py
 .PHONY: fmt
+
+venv:
+	test -d ${VENV_DIR} || ${VENV} --python=python3 ${VENV_DIR}
+.PHONY: venv
 
 develop:
 	@python3 setup.py develop
