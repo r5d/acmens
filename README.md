@@ -14,11 +14,32 @@ It's meant to be run locally from your computer.
 * openssl or libressl
 * python3
 * pip
+* virtualenv (if you want to use the repo version)
 
 ## installation
 
 ```sh
 pip install acmens
+```
+
+Or, if you would like to use the repo version:
+
+```sh
+cd /path/to/acmens
+
+# init virtual environment
+make venv
+
+# activate virtual environment
+. .venv/bin/activate
+
+# put acmens in your PATH
+make develop
+# note that any changes you make to acmens.py will be instantly reflected
+# in the acmens in your PATH.
+
+# de-activate the virtual environment:
+deactivate
 ```
 
 ## getting/renewing a certificate
