@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 #
 # Copyright © 2015-2018 Daniel Roesler <diafygi@gmail.com>
-# Copyright © 2021 siddharth <s@ricketyspace.net>
+# Copyright © 2021-2022 siddharth <s@ricketyspace.net>
 #
 
 import argparse
