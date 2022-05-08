@@ -22,7 +22,7 @@ import copy
 import textwrap
 
 from urllib.request import urlopen
-from urllib.error import HTTPError
+from urllib.error import URLError
 
 
 __version__ = "0.2.0.dev"
@@ -58,7 +58,7 @@ def _cmd(cmd_list, stdin=None, cmd_input=None, err_msg="Command Line Error"):
     return out
 
 
-def _do_request(url, data=None, err_msg="Error", depth=0):
+def _do_request(url, data=None, err_msg="Error"):
     try:
         resp = urllib.request.urlopen(
             urllib.request.Request(
@@ -75,29 +75,17 @@ def _do_request(url, data=None, err_msg="Error", depth=0):
             resp.getcode(),
             resp.headers,
         )
-    except IOError as e:
+    except URLError as e:
         resp_data = e.read().decode("utf8") if hasattr(e, "read") else str(e)
         code, headers = getattr(e, "code", None), {}
     try:
         resp_data = json.loads(resp_data)  # try to parse json results
     except ValueError:
-        pass  # ignore json parsing errors
-    if (
-        depth < 100
-        and code == 400
-        and resp_data["type"] == "urn:ietf:params:acme:error:badNonce"
-    ):
-        raise IndexError(resp_data)  # allow 100 retrys for bad nonces
-    if code not in [200, 201, 204]:
-        raise ValueError(
-            "{0}:\nUrl: {1}\nData: {2}\nResponse Code: {3}\nResponse: {4}".format(
-                err_msg, url, data, code, resp_data
-            )
-        )
+        pass  # resp_data is not a JSON string; that's fine
     return resp_data, code, headers
 
 
-def _send_signed_request(url, payload, nonce_url, auth, account_key, err_msg, depth=0):
+def _send_signed_request(url, payload, nonce_url, auth, account_key, err_msg):
     """Make signed request to ACME endpoint"""
     payload64 = "" if payload is None else _b64(json.dumps(payload).encode("utf8"))
     new_nonce = _do_request(nonce_url)[2]["Replay-Nonce"]
@@ -114,12 +102,28 @@ def _send_signed_request(url, payload, nonce_url, auth, account_key, err_msg, de
     data = json.dumps(
         {"protected": protected64, "payload": payload64, "signature": _b64(out)}
     )
-    try:
-        return _do_request(url, data=data.encode("utf8"), err_msg=err_msg, depth=depth)
-    except IndexError:  # retry bad nonces (they raise IndexError)
-        return _send_signed_request(
-            url, payload, auth, account_key, err_msg, depth=(depth + 1)
+
+    tried = 0
+    while True:
+        resp_data, resp_code, headers = _do_request(
+            url, data=data.encode("utf8"), err_msg=err_msg
         )
+        if resp_code in [200, 201, 204]:
+            return resp_data, resp_code, headers
+        elif (
+            resp_code == 400
+            and resp_data.get("type", "") == "urn:ietf:params:acme:error:badNonce"
+            and tried < 100
+        ):
+            tried += 1
+            continue
+        else:
+            sys.stderr.write(
+                "{0}:\nUrl: {1}\nData: {2}\nResponse Code: {3}\nResponse: {4}".format(
+                    err_msg, url, data, resp_code, resp_data
+                )
+            )
+            sys.exit(1)
 
 
 def _poll_until_not(url, pending_statuses, nonce_url, auth, account_key, err_msg):
