@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Copyright © 2021 siddharth <s@ricketyspace.net>
+# Copyright © 2021-2022 siddharth <s@ricketyspace.net>
 #
 
 from setuptools import setup, find_packages
@@ -18,7 +18,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 config = {
     "name": "acmens",
     "version": __version__,
-    "description": "A simple ACMEv2 client. Fork of acme-nosudo.",
+    "description": "An ACMEv2 client. Fork of acme-nosudo.",
     "long_description": long_description,
     "long_description_content_type": "text/markdown",
     "url": "https://github.com/r5d/acmens",
