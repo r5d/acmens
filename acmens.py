@@ -25,7 +25,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 
 
-__version__ = "0.1.7"
+__version__ = "0.2.0.dev"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
@@ -53,7 +53,8 @@ def _cmd(cmd_list, stdin=None, cmd_input=None, err_msg="Command Line Error"):
     )
     out, err = proc.communicate(cmd_input)
     if proc.returncode != 0:
-        raise IOError("{0}\n{1}".format(err_msg, err))
+        sys.stderr.write("{0}: {1}\n".format(err_msg, err.decode()))
+        sys.exit(1)
     return out
 
 
