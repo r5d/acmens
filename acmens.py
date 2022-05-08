@@ -9,17 +9,13 @@
 import argparse
 import subprocess
 import json
-import os
 import urllib.request
 import sys
 import base64
 import binascii
 import time
 import hashlib
-import tempfile
 import re
-import copy
-import textwrap
 
 from urllib.request import urlopen
 from urllib.error import URLError
