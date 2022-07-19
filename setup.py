@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Copyright © 2021-2022 siddharth <s@ricketyspace.net>
+# Copyright © 2021-2022 siddharth ravikumar <s@ricketyspace.net>
 #
 
 from setuptools import setup
@@ -22,7 +22,7 @@ config = {
     "long_description": long_description,
     "long_description_content_type": "text/markdown",
     "url": "https://github.com/r5d/acmens",
-    "author": "siddharth",
+    "author": "siddharth ravikumar",
     "author_email": "s@ricketyspace.net",
     "license": "GNU Affero General Public License v3",
     "classifiers": [

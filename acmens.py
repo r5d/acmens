@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 #
 # Copyright © 2015-2018 Daniel Roesler <diafygi@gmail.com>
-# Copyright © 2021-2022 siddharth <s@ricketyspace.net>
+# Copyright © 2021-2022 siddharth ravikumar <s@ricketyspace.net>
 #
 
 import argparse
@@ -21,7 +21,7 @@ from urllib.request import urlopen
 from urllib.error import URLError
 
 
-__version__ = "0.2.0"
+__version__ = "0.3.0.dev"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"

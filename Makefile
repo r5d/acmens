@@ -1,7 +1,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Copyright © 2020 rsiddharth <s@ricketyspace.net>
+# Copyright © 2020-2022 siddharth ravikumar <s@ricketyspace.net>
 #
 VENV_DIR=.venv
 VENV=virtualenv
