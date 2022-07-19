@@ -21,7 +21,7 @@ from urllib.request import urlopen
 from urllib.error import URLError
 
 
-__version__ = "0.3.0.dev"
+__version__ = "0.3.0"
 
 CA_PRD = "https://acme-v02.api.letsencrypt.org"
 CA_STG = "https://acme-staging-v02.api.letsencrypt.org"
