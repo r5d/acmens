@@ -81,11 +81,13 @@ def _do_request(url, data=None, err_msg="Error"):
     return resp_data, code, headers
 
 
-def _send_signed_request(url, payload, nonce_url, auth, account_key, err_msg):
-    """Make signed request to ACME endpoint"""
+def _mk_signed_req_body(url, payload, nonce, auth, account_key):
+    if len(nonce) < 1:
+        sys.stderr.write("_mk_signed_req_body: nonce invalid: {}".format(nonce))
+        sys.exit(1)
+
     payload64 = "" if payload is None else _b64(json.dumps(payload).encode("utf8"))
-    new_nonce = _do_request(nonce_url)[2]["Replay-Nonce"]
-    protected = {"url": url, "alg": "RS256", "nonce": new_nonce}
+    protected = {"url": url, "alg": "RS256", "nonce": nonce}
     protected.update(auth)
     protected64 = _b64(json.dumps(protected).encode("utf8"))
     protected_input = "{0}.{1}".format(protected64, payload64).encode("utf8")
@@ -95,12 +97,17 @@ def _send_signed_request(url, payload, nonce_url, auth, account_key, err_msg):
         cmd_input=protected_input,
         err_msg="OpenSSL Error",
     )
-    data = json.dumps(
+    return json.dumps(
         {"protected": protected64, "payload": payload64, "signature": _b64(out)}
     )
 
+
+def _send_signed_request(url, payload, nonce_url, auth, account_key, err_msg):
+    """Make signed request to ACME endpoint"""
     tried = 0
+    nonce = _do_request(nonce_url)[2]["Replay-Nonce"]
     while True:
+        data = _mk_signed_req_body(url, payload, nonce, auth, account_key)
         resp_data, resp_code, headers = _do_request(
             url, data=data.encode("utf8"), err_msg=err_msg
         )
@@ -111,6 +118,7 @@ def _send_signed_request(url, payload, nonce_url, auth, account_key, err_msg):
             and resp_data.get("type", "") == "urn:ietf:params:acme:error:badNonce"
             and tried < 100
         ):
+            nonce = headers.get("Replay-Nonce", "")
             tried += 1
             continue
         else:
